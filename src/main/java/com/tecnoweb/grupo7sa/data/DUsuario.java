@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 public class DUsuario {
 
     private final DatabaseConection databaseConection;
@@ -103,7 +104,7 @@ public class DUsuario {
     }
 
     public List<String[]> findAllUsers() {
-        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol FROM usuario WHERE activo = true";
+        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol, activo FROM usuario WHERE activo = true";
         List<String[]> usuarios = new ArrayList<>();
 
         try {
@@ -111,7 +112,7 @@ public class DUsuario {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String[] usuario = new String[8];
+                String[] usuario = new String[9];
                 usuario[0] = String.valueOf(rs.getInt("id"));
                 usuario[1] = rs.getString("nombre");
                 usuario[2] = rs.getString("apellido");
@@ -120,6 +121,7 @@ public class DUsuario {
                 usuario[5] = rs.getString("telefono");
                 usuario[6] = rs.getString("carnet");
                 usuario[7] = rs.getString("rol");
+                usuario[8] = String.valueOf(rs.getBoolean("activo"));
                 usuarios.add(usuario);
 
                 // Mostrar cada usuario en consola
@@ -130,24 +132,28 @@ public class DUsuario {
                         ", Registro=" + usuario[4] +
                         ", Telefono=" + usuario[5] +
                         ", Carnet=" + usuario[6] +
-                        ", Rol=" + usuario[7]);
+                        ", Rol=" + usuario[7] +
+                        ", Activo=" + usuario[8]);
             }
 
             rs.close();
             ps.close();
 
-            System.out.println("Total usuarios encontrados: " + usuarios.size());
+            if (usuarios.isEmpty()) {
+                System.out.println("No se encontraron usuarios activos en el sistema");
+            } else {
+                System.out.println("Total usuarios encontrados: " + usuarios.size());
+            }
 
         } catch (SQLException e) {
-            // En caso de error, retorna lista vacía
             System.out.println("Error: " + e.getMessage());
         }
 
         return usuarios;
     }
 
-    public String[] findOneByRegistro(int id) {
-        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol FROM usuario WHERE id = ? AND activo = true";
+    public String[] findOneById(int id) {
+        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol, activo FROM usuario WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -155,7 +161,7 @@ public class DUsuario {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String[] usuario = new String[8];
+                String[] usuario = new String[9];
                 usuario[0] = String.valueOf(rs.getInt("id"));
                 usuario[1] = rs.getString("nombre");
                 usuario[2] = rs.getString("apellido");
@@ -164,6 +170,17 @@ public class DUsuario {
                 usuario[5] = rs.getString("telefono");
                 usuario[6] = rs.getString("carnet");
                 usuario[7] = rs.getString("rol");
+                usuario[8] = String.valueOf(rs.getBoolean("activo"));
+
+                System.out.println("Usuario encontrado por ID: ID=" + usuario[0] +
+                        ", Nombre=" + usuario[1] +
+                        ", Apellido=" + usuario[2] +
+                        ", Email=" + usuario[3] +
+                        ", Registro=" + usuario[4] +
+                        ", Telefono=" + usuario[5] +
+                        ", Carnet=" + usuario[6] +
+                        ", Rol=" + usuario[7] +
+                        ", Activo=" + usuario[8]);
 
                 rs.close();
                 ps.close();
@@ -173,11 +190,60 @@ public class DUsuario {
                 rs.close();
                 ps.close();
 
-                return null; // Usuario no encontrado
+                System.out.println("No se encontró el usuario con ID: " + id);
+                return null;
             }
 
         } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Error al buscar usuario por ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public String[] findOneByRegister(String registro) {
+        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol, activo FROM usuario WHERE registro = ?";
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ps.setString(1, registro);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String[] usuario = new String[9];
+                usuario[0] = String.valueOf(rs.getInt("id"));
+                usuario[1] = rs.getString("nombre");
+                usuario[2] = rs.getString("apellido");
+                usuario[3] = rs.getString("email");
+                usuario[4] = rs.getString("registro");
+                usuario[5] = rs.getString("telefono");
+                usuario[6] = rs.getString("carnet");
+                usuario[7] = rs.getString("rol");
+                usuario[8] = String.valueOf(rs.getBoolean("activo"));
+
+                System.out.println("Usuario encontrado por registro: ID=" + usuario[0] +
+                        ", Nombre=" + usuario[1] +
+                        ", Apellido=" + usuario[2] +
+                        ", Email=" + usuario[3] +
+                        ", Registro=" + usuario[4] +
+                        ", Telefono=" + usuario[5] +
+                        ", Carnet=" + usuario[6] +
+                        ", Rol=" + usuario[7] +
+                        ", Activo=" + usuario[8]);
+
+                rs.close();
+                ps.close();
+
+                return usuario;
+            } else {
+                rs.close();
+                ps.close();
+
+                System.out.println("No se encontró el usuario con registro: " + registro);
+                return null;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error al buscar usuario por registro: " + e.getMessage());
             return null;
         }
     }
