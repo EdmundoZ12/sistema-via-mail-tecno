@@ -12,6 +12,10 @@ public class CommandInterpreter {
         COMMANDS.put("usuario", new String[]{"save", "update", "delete", "findAll", "findById", "findByRegister", "findAllResponsables", "findAllAdministrativos", "findAllTutores"});
         COMMANDS.put("participante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCarnet", "findByRegistro", "findByTipo"});
         COMMANDS.put("tipoparticipante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCodigo"});
+        // ⭐ NUEVO: Comandos para gestión
+        COMMANDS.put("gestion", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByDateRange", "findByName"});
+        // ⭐ NUEVO: Comandos para cronograma de curso
+        COMMANDS.put("cronogramacurso", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByCursoGestion", "findByFase", "findByFechaRange"});
     }
 
     public static String interpret(String subject) {
@@ -24,7 +28,7 @@ public class CommandInterpreter {
             return getHelpMessage();
         }
 
-        String pattern = "(\\w+)\\s+(\\w+)\\s*\\((.*)\\)";
+        String pattern = "([a-zA-Z]+)\\s+([a-zA-Z]+)\\s*\\((.*)\\)";
         java.util.regex.Pattern regex = java.util.regex.Pattern.compile(pattern);
         java.util.regex.Matcher matcher = regex.matcher(subject);
 
@@ -60,6 +64,10 @@ public class CommandInterpreter {
                 return executeParticipanteCommand(command, params);
             case "tipoparticipante":
                 return executeTipoParticipanteCommand(command, params);
+            case "gestion":
+                return executeGestionCommand(command, params);
+            case "cronogramacurso":
+                return executeCronogramaCursoCommand(command, params);
             default:
                 return "Entidad no reconocida: " + entity;
         }
@@ -134,6 +142,56 @@ public class CommandInterpreter {
         }
     }
 
+    // ⭐ NUEVO: Método para ejecutar comandos de gestión
+    private static String executeGestionCommand(String command, String params) {
+        switch (command) {
+            case "save":
+                return HandleGestion.save(params);
+            case "update":
+                return HandleGestion.update(params);
+            case "delete":
+                return HandleGestion.delete(params);
+            case "reactivate":
+                return HandleGestion.reactivate(params);
+            case "findAll":
+                return HandleGestion.findAll();
+            case "findById":
+                return HandleGestion.findById(params);
+            case "findByDateRange":
+                return HandleGestion.findByDateRange(params);
+            case "findByName":
+                return HandleGestion.findByName(params);
+            default:
+                return "Comando no implementado: " + command;
+        }
+    }
+
+    // ⭐ NUEVO: Método para ejecutar comandos de cronograma de curso
+    private static String executeCronogramaCursoCommand(String command, String params) {
+        switch (command) {
+            case "save":
+                return HandleCronograma_Curso.save(params);
+            case "update":
+                return HandleCronograma_Curso.update(params);
+            case "delete":
+                return HandleCronograma_Curso.delete(params);
+            case "reactivate":
+                return HandleCronograma_Curso.reactivate(params);
+            case "findAll":
+                return HandleCronograma_Curso.findAll();
+            case "findById":
+                return HandleCronograma_Curso.findById(params);
+            case "findByCursoGestion":
+                return HandleCronograma_Curso.findByCursoGestion(params);
+            case "findByFase":
+                return HandleCronograma_Curso.findByFase(params);
+            case "findByFechaRange":
+                return HandleCronograma_Curso.findByFechaRange(params);
+            default:
+                return "Comando no implementado: " + command;
+        }
+    }
+
     private static String getHelpMessage() {
         return "**************** SISTEMA PARA CAPACITACIÓN UNIDAD CICIT ****************\r\n" +
                 "\r\n" +
@@ -173,6 +231,27 @@ public class CommandInterpreter {
                 "- findById (id)\r\n" +
                 "- findByCodigo (codigo)\r\n" +
                 "\r\n" +
+                "=== GESTION ===\r\n" +
+                "- save (descripcion, fechaInicio, fechaFin, nombre)\r\n" +
+                "- update (id, descripcion, fechaInicio, fechaFin, nombre)\r\n" +
+                "- delete (id)\r\n" +
+                "- reactivate (id)\r\n" +
+                "- findAll ()\r\n" +
+                "- findById (id)\r\n" +
+                "- findByDateRange (fechaInicio, fechaFin)\r\n" +
+                "- findByName (nombre)\r\n" +
+                "\r\n" +
+                "=== CRONOGRAMA CURSO ===\r\n" +
+                "- save (cursoGestionId, descripcion, fase, fechaInicio, fechaFin)\r\n" +
+                "- update (id, cursoGestionId, descripcion, fase, fechaInicio, fechaFin)\r\n" +
+                "- delete (id)\r\n" +
+                "- reactivate (id)\r\n" +
+                "- findAll ()\r\n" +
+                "- findById (id)\r\n" +
+                "- findByCursoGestion (cursoGestionId)\r\n" +
+                "- findByFase (fase)\r\n" +
+                "- findByFechaRange (fechaInicio, fechaFin)\r\n" +
+                "\r\n" +
                 "Ejemplos:\r\n" +
                 "usuario save (Juan, Perez, juan@email.com, REG001, 70123456, 12345678, password123, RESPONSABLE)\r\n" +
                 "usuario findAllResponsables ()\r\n" +
@@ -180,6 +259,23 @@ public class CommandInterpreter {
                 "participante save (Juan, Perez, CI12345, REG001, Sistemas, juan@email.com, FICCT, 70123456, UAGRM, 1)\r\n" +
                 "participante findByCarnet (CI12345)\r\n" +
                 "participante findByRegistro (REG001)\r\n" +
-                "tipoparticipante save (Estudiante, EST, Estudiante universitario)\r\n";
+                "tipoparticipante save (Estudiante, EST, Estudiante universitario)\r\n" +
+                "gestion save (Semestre con modalidad híbrida, 2024-03-01, 2024-07-15, Semestre I-2024)\r\n" +
+                "gestion update (1, Semestre actualizado, 2024-03-01, 2024-07-20, Semestre I-2024)\r\n" +
+                "gestion delete (1)\r\n" +
+                "gestion reactivate (1)\r\n" +
+                "gestion findAll ()\r\n" +
+                "gestion findById (1)\r\n" +
+                "gestion findByDateRange (2024-01-01, 2024-12-31)\r\n" +
+                "gestion findByName (Semestre)\r\n" +
+                "cronogramacurso save (1, Desarrollo de aplicaciones web, planificacion, 2024-03-01, 2024-03-15)\r\n" +
+                "cronogramacurso update (1, 1, Desarrollo de aplicaciones web actualizado, desarrollo, 2024-03-01, 2024-03-20)\r\n" +
+                "cronogramacurso delete (1)\r\n" +
+                "cronogramacurso reactivate (1)\r\n" +
+                "cronogramacurso findAll ()\r\n" +
+                "cronogramacurso findById (1)\r\n" +
+                "cronogramacurso findByCursoGestion (1)\r\n" +
+                "cronogramacurso findByFase (planificacion)\r\n" +
+                "cronogramacurso findByFechaRange (2024-03-01, 2024-03-31)\r\n";
     }
 }
