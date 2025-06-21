@@ -83,11 +83,12 @@ public class HandleUsuario {
 
             StringBuilder sb = new StringBuilder("=== USUARIOS REGISTRADOS ===\n");
             for (String[] usuario : usuarios) {
+                // ⭐ CORREGIDO: El rol está en índice [7], no [8]
                 sb.append("ID: ").append(usuario[0])
                         .append(" | Nombre: ").append(usuario[1]).append(" ").append(usuario[2])
                         .append(" | Email: ").append(usuario[3])
                         .append(" | Registro: ").append(usuario[4])
-                        .append(" | Rol: ").append(usuario[8]).append("\n");
+                        .append(" | Rol: ").append(usuario[7]).append("\n");
             }
             return sb.toString();
         } catch (Exception e) {
@@ -105,6 +106,7 @@ public class HandleUsuario {
                 return "No se encontró usuario con ID: " + id;
             }
 
+            // ⭐ CORREGIDO: Índices según array String[9]
             return "Usuario encontrado:\n" +
                     "ID: " + usuario[0] + "\n" +
                     "Nombre: " + usuario[1] + " " + usuario[2] + "\n" +
@@ -112,7 +114,8 @@ public class HandleUsuario {
                     "Registro: " + usuario[4] + "\n" +
                     "Teléfono: " + usuario[5] + "\n" +
                     "Carnet: " + usuario[6] + "\n" +
-                    "Rol: " + usuario[8];
+                    "Rol: " + usuario[7] + "\n" +
+                    "Activo: " + usuario[8];
         } catch (NumberFormatException e) {
             return "Error: El ID debe ser numérico. " + e.getMessage();
         } catch (Exception e) {
@@ -130,6 +133,7 @@ public class HandleUsuario {
                 return "No se encontró usuario con registro: " + registro;
             }
 
+            // ⭐ CORREGIDO: Índices según array String[9]
             return "Usuario encontrado:\n" +
                     "ID: " + usuario[0] + "\n" +
                     "Nombre: " + usuario[1] + " " + usuario[2] + "\n" +
@@ -137,9 +141,82 @@ public class HandleUsuario {
                     "Registro: " + usuario[4] + "\n" +
                     "Teléfono: " + usuario[5] + "\n" +
                     "Carnet: " + usuario[6] + "\n" +
-                    "Rol: " + usuario[8];
+                    "Rol: " + usuario[7] + "\n" +
+                    "Activo: " + usuario[8];
         } catch (Exception e) {
             return "Error al buscar usuario por registro: " + e.getMessage();
+        }
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios RESPONSABLES activos
+    public static String findAllResponsables() {
+        try {
+            BUsuario bUsuario = new BUsuario();
+            List<String[]> usuarios = bUsuario.findAllResponsables();
+
+            if (usuarios == null || usuarios.isEmpty()) {
+                return "No hay usuarios RESPONSABLES registrados.";
+            }
+
+            StringBuilder sb = new StringBuilder("=== USUARIOS RESPONSABLES ===\n");
+            for (String[] usuario : usuarios) {
+                sb.append("ID: ").append(usuario[0])
+                        .append(" | Nombre: ").append(usuario[1]).append(" ").append(usuario[2])
+                        .append(" | Email: ").append(usuario[3])
+                        .append(" | Registro: ").append(usuario[4])
+                        .append(" | Rol: ").append(usuario[7]).append("\n");
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "Error al recuperar usuarios responsables: " + e.getMessage();
+        }
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios ADMINISTRATIVOS activos
+    public static String findAllAdministrativos() {
+        try {
+            BUsuario bUsuario = new BUsuario();
+            List<String[]> usuarios = bUsuario.findAllAdministrativos();
+
+            if (usuarios == null || usuarios.isEmpty()) {
+                return "No hay usuarios ADMINISTRATIVOS registrados.";
+            }
+
+            StringBuilder sb = new StringBuilder("=== USUARIOS ADMINISTRATIVOS ===\n");
+            for (String[] usuario : usuarios) {
+                sb.append("ID: ").append(usuario[0])
+                        .append(" | Nombre: ").append(usuario[1]).append(" ").append(usuario[2])
+                        .append(" | Email: ").append(usuario[3])
+                        .append(" | Registro: ").append(usuario[4])
+                        .append(" | Rol: ").append(usuario[7]).append("\n");
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "Error al recuperar usuarios administrativos: " + e.getMessage();
+        }
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios TUTORES activos
+    public static String findAllTutores() {
+        try {
+            BUsuario bUsuario = new BUsuario();
+            List<String[]> usuarios = bUsuario.findAllTutores();
+
+            if (usuarios == null || usuarios.isEmpty()) {
+                return "No hay usuarios TUTORES registrados.";
+            }
+
+            StringBuilder sb = new StringBuilder("=== USUARIOS TUTORES ===\n");
+            for (String[] usuario : usuarios) {
+                sb.append("ID: ").append(usuario[0])
+                        .append(" | Nombre: ").append(usuario[1]).append(" ").append(usuario[2])
+                        .append(" | Email: ").append(usuario[3])
+                        .append(" | Registro: ").append(usuario[4])
+                        .append(" | Rol: ").append(usuario[7]).append("\n");
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "Error al recuperar usuarios tutores: " + e.getMessage();
         }
     }
 }

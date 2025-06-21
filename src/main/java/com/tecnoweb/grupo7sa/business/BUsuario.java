@@ -60,9 +60,8 @@ public class BUsuario {
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
-        } finally {
-            dUsuario.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String update(int id, String nombre, String apellido, String email, String registro, String telefono, String carnet, String password, String rol) {
@@ -117,90 +116,115 @@ public class BUsuario {
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
-        } finally {
-            dUsuario.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String delete(int id) {
 
-        // Validaciones de negocio
         if (id <= 0) {
             return "Error: El ID debe ser mayor a 0";
         }
 
-        // Llamar a la capa de datos
         try {
             String result = dUsuario.delete(id);
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
-        } finally {
-            dUsuario.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public List<String[]> findAllUsers() {
 
-        // Llamar a la capa de datos
         try {
             List<String[]> result = dUsuario.findAllUsers();
             return result;
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dUsuario.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String[] findOneById(int id) {
 
-        // Validaciones de negocio
         if (id <= 0) {
             System.out.println("Error: El ID debe ser mayor a 0");
             return null;
         }
 
-        // Llamar a la capa de datos
         try {
             String[] result = dUsuario.findOneById(id);
             return result;
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dUsuario.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String[] findOneByRegister(String registro) {
 
-        // Validaciones de negocio
         if (registro == null || registro.trim().isEmpty()) {
             System.out.println("Error: El registro es obligatorio");
             return null;
         }
 
-        // Llamar a la capa de datos
         try {
             String[] result = dUsuario.findOneByRegister(registro.trim());
             return result;
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dUsuario.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
-    // Método para validar email
+    // ⭐ NUEVO: Buscar todos los usuarios RESPONSABLES activos
+    public List<String[]> findAllResponsables() {
+
+        try {
+            List<String[]> result = dUsuario.findAllResponsables();
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error en la capa de negocio: " + e.getMessage());
+            return null;
+        }
+        // ⭐ ELIMINADO: finally con disconnect
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios ADMINISTRATIVOS activos
+    public List<String[]> findAllAdministrativos() {
+
+        try {
+            List<String[]> result = dUsuario.findAllAdministrativos();
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error en la capa de negocio: " + e.getMessage());
+            return null;
+        }
+        // ⭐ ELIMINADO: finally con disconnect
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios TUTORES activos
+    public List<String[]> findAllTutores() {
+
+        try {
+            List<String[]> result = dUsuario.findAllTutores();
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error en la capa de negocio: " + e.getMessage());
+            return null;
+        }
+        // ⭐ ELIMINADO: finally con disconnect
+    }
+
     private boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return false;
         }
 
-        // Validación básica de email
         String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
         return email.matches(emailRegex);
     }
@@ -212,6 +236,12 @@ public class BUsuario {
 
         String rolUpper = rol.toUpperCase();
         return rolUpper.equals("RESPONSABLE") || rolUpper.equals("ADMINISTRATIVO") || rolUpper.equals("TUTOR");
+    }
+
+    public void disconnect() {
+        if (dUsuario != null) {
+            dUsuario.disconnect();
+        }
     }
 
 }

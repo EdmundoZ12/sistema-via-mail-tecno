@@ -247,4 +247,139 @@ public class DUsuario {
             return null;
         }
     }
+
+    // ⭐ NUEVO: Buscar todos los usuarios RESPONSABLES activos
+    public List<String[]> findAllResponsables() {
+        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol, activo FROM usuario WHERE activo = true AND rol = 'RESPONSABLE'";
+        List<String[]> usuarios = new ArrayList<>();
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String[] usuario = new String[9];
+                usuario[0] = String.valueOf(rs.getInt("id"));
+                usuario[1] = rs.getString("nombre");
+                usuario[2] = rs.getString("apellido");
+                usuario[3] = rs.getString("email");
+                usuario[4] = rs.getString("registro");
+                usuario[5] = rs.getString("telefono");
+                usuario[6] = rs.getString("carnet");
+                usuario[7] = rs.getString("rol");
+                usuario[8] = String.valueOf(rs.getBoolean("activo"));
+                usuarios.add(usuario);
+
+                System.out.println("Responsable: ID=" + usuario[0] +
+                        ", Nombre=" + usuario[1] + " " + usuario[2] +
+                        ", Email=" + usuario[3] +
+                        ", Registro=" + usuario[4] +
+                        ", Rol=" + usuario[7]);
+            }
+
+            rs.close();
+            ps.close();
+
+            if (usuarios.isEmpty()) {
+                System.out.println("No se encontraron usuarios RESPONSABLES activos");
+            } else {
+                System.out.println("Total usuarios RESPONSABLES encontrados: " + usuarios.size());
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return usuarios;
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios ADMINISTRATIVOS activos
+    public List<String[]> findAllAdministrativos() {
+        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol, activo FROM usuario WHERE activo = true AND rol = 'ADMINISTRATIVO'";
+        List<String[]> usuarios = new ArrayList<>();
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String[] usuario = new String[9];
+                usuario[0] = String.valueOf(rs.getInt("id"));
+                usuario[1] = rs.getString("nombre");
+                usuario[2] = rs.getString("apellido");
+                usuario[3] = rs.getString("email");
+                usuario[4] = rs.getString("registro");
+                usuario[5] = rs.getString("telefono");
+                usuario[6] = rs.getString("carnet");
+                usuario[7] = rs.getString("rol");
+                usuario[8] = String.valueOf(rs.getBoolean("activo"));
+                usuarios.add(usuario);
+
+                System.out.println("Administrativo: ID=" + usuario[0] +
+                        ", Nombre=" + usuario[1] + " " + usuario[2] +
+                        ", Email=" + usuario[3] +
+                        ", Registro=" + usuario[4] +
+                        ", Rol=" + usuario[7]);
+            }
+
+            rs.close();
+            ps.close();
+
+            if (usuarios.isEmpty()) {
+                System.out.println("No se encontraron usuarios ADMINISTRATIVOS activos");
+            } else {
+                System.out.println("Total usuarios ADMINISTRATIVOS encontrados: " + usuarios.size());
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return usuarios;
+    }
+
+    // ⭐ NUEVO: Buscar todos los usuarios TUTORES activos
+    public List<String[]> findAllTutores() {
+        String query = "SELECT id, nombre, apellido, email, registro, telefono, carnet, rol, activo FROM usuario WHERE activo = true AND rol = 'TUTOR'";
+        List<String[]> usuarios = new ArrayList<>();
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String[] usuario = new String[9];
+                usuario[0] = String.valueOf(rs.getInt("id"));
+                usuario[1] = rs.getString("nombre");
+                usuario[2] = rs.getString("apellido");
+                usuario[3] = rs.getString("email");
+                usuario[4] = rs.getString("registro");
+                usuario[5] = rs.getString("telefono");
+                usuario[6] = rs.getString("carnet");
+                usuario[7] = rs.getString("rol");
+                usuario[8] = String.valueOf(rs.getBoolean("activo"));
+                usuarios.add(usuario);
+
+                System.out.println("Tutor: ID=" + usuario[0] +
+                        ", Nombre=" + usuario[1] + " " + usuario[2] +
+                        ", Email=" + usuario[3] +
+                        ", Registro=" + usuario[4] +
+                        ", Rol=" + usuario[7]);
+            }
+
+            rs.close();
+            ps.close();
+
+            if (usuarios.isEmpty()) {
+                System.out.println("No se encontraron usuarios TUTORES activos");
+            } else {
+                System.out.println("Total usuarios TUTORES encontrados: " + usuarios.size());
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return usuarios;
+    }
 }

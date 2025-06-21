@@ -8,8 +8,8 @@ public class CommandInterpreter {
     private static final Map<String, String[]> COMMANDS = new HashMap<>();
 
     static {
-        COMMANDS.put("usuario", new String[]{"save", "update", "delete", "findAll", "findById", "findByRegister"});
-        // ⭐ ACTUALIZADO: Añadido comando "findByRegistro" para participante
+        // ⭐ ACTUALIZADO: Añadidos comandos findAllResponsables, findAllAdministrativos, findAllTutores
+        COMMANDS.put("usuario", new String[]{"save", "update", "delete", "findAll", "findById", "findByRegister", "findAllResponsables", "findAllAdministrativos", "findAllTutores"});
         COMMANDS.put("participante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCarnet", "findByRegistro", "findByTipo"});
         COMMANDS.put("tipoparticipante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCodigo"});
     }
@@ -79,6 +79,13 @@ public class CommandInterpreter {
                 return HandleUsuario.findById(params);
             case "findByRegister":
                 return HandleUsuario.findByRegister(params);
+            // ⭐ NUEVOS: Comandos para buscar usuarios por rol
+            case "findAllResponsables":
+                return HandleUsuario.findAllResponsables();
+            case "findAllAdministrativos":
+                return HandleUsuario.findAllAdministrativos();
+            case "findAllTutores":
+                return HandleUsuario.findAllTutores();
             default:
                 return "Comando no implementado: " + command;
         }
@@ -141,6 +148,10 @@ public class CommandInterpreter {
                 "- findAll ()\r\n" +
                 "- findById (id)\r\n" +
                 "- findByRegister (registro)\r\n" +
+                // ⭐ NUEVOS: Comandos para buscar usuarios por rol
+                "- findAllResponsables ()\r\n" +
+                "- findAllAdministrativos ()\r\n" +
+                "- findAllTutores ()\r\n" +
                 "\r\n" +
                 "=== PARTICIPANTE ===\r\n" +
                 // ⭐ ACTUALIZADO: Nuevo orden de parámetros con campo 'registro'
@@ -164,7 +175,8 @@ public class CommandInterpreter {
                 "\r\n" +
                 "Ejemplos:\r\n" +
                 "usuario save (Juan, Perez, juan@email.com, REG001, 70123456, 12345678, password123, RESPONSABLE)\r\n" +
-                // ⭐ ACTUALIZADO: Ejemplo con nuevo orden de parámetros
+                "usuario findAllResponsables ()\r\n" +
+                "usuario findAllTutores ()\r\n" +
                 "participante save (Juan, Perez, CI12345, REG001, Sistemas, juan@email.com, FICCT, 70123456, UAGRM, 1)\r\n" +
                 "participante findByCarnet (CI12345)\r\n" +
                 "participante findByRegistro (REG001)\r\n" +
