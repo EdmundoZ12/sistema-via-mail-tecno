@@ -44,3 +44,52 @@ CREATE TABLE participante
     tipo_participante_id INTEGER      NOT NULL,
     FOREIGN KEY (tipo_participante_id) REFERENCES tipo_participante (id)
 );
+
+-- =====================================================
+-- 4. TABLA: curso (Creados Por Responsables)
+-- =====================================================
+CREATE TABLE curso 
+(
+    id                    SERIAL PRIMARY KEY,
+    numero_preinscripcion VARCHAR(200),
+    descripcion           TEXT,
+    logo_url              VARCHAR(500),
+    duracion_horas        INTEGER,
+    modalidad             VARCHAR(20),
+    nivel                 VARCHAR(20),
+    requisitos            TEXT,
+    activo                BOOLEAN NOT NULL DEFAULT true
+);
+
+-- =====================================================
+-- 5. TABLA: precio_curso
+-- =====================================================
+CREATE TABLE precio_curso 
+(
+    id               SERIAL PRIMARY KEY,
+    curso_id         INTEGER NOT NULL,
+    tipo_usuario_id  INTEGER NOT NULL,
+    precio           DECIMAL(10,2) NOT NULL,
+    activo           BOOLEAN NOT NULL DEFAULT true,
+    FOREIGN KEY (curso_id) REFERENCES curso (id),
+    FOREIGN KEY (tipo_usuario_id) REFERENCES tipo_participante (id)
+);
+
+-- =====================================================
+-- 6. TABLA: curso_gestion (Gestionados Por Responsables)
+-- =====================================================
+CREATE TABLE curso_gestion
+(
+    id              SERIAL PRIMARY KEY,
+    curso_id        INTEGER NOT NULL,
+    gestion_id      INTEGER NOT NULL,
+    tutor_id        INTEGER NOT NULL,
+    responsable_id  INTEGER NOT NULL,
+    cupos_totales   INTEGER NOT NULL,
+    cupos_ocupados  INTEGER NOT NULL DEFAULT 0,
+    aula            VARCHAR(50),
+    estado          VARCHAR(20) NOT NULL,
+    observaciones   TEXT,
+    FOREIGN KEY (curso_id) REFERENCES curso (id),
+    FOREIGN KEY (tutor_id) REFERENCES usuario (id)
+);
