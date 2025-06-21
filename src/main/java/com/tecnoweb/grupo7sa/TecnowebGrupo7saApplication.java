@@ -21,7 +21,6 @@ public class TecnowebGrupo7saApplication {
 //        conection.closeConnection();
         DUsuario du = new DUsuario();
         BUsuario bUsuario = new BUsuario();
-        System.out.println("CAMBIO");
         bUsuario.findAllUsers();
         bUsuario.findOneById(0);
 //        du.update(3,"JUANA", "PEREZ", "juanito@gmail.com", "221", "9874521", "123", "RESPONSABLE");
