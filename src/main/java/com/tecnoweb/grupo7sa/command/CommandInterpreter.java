@@ -1,6 +1,5 @@
 package com.tecnoweb.grupo7sa.command;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +9,8 @@ public class CommandInterpreter {
 
     static {
         COMMANDS.put("usuario", new String[]{"save", "update", "delete", "findAll", "findById", "findByRegister"});
-        COMMANDS.put("participante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCarnet", "findByTipo"});
+        // ⭐ ACTUALIZADO: Añadido comando "findByRegistro" para participante
+        COMMANDS.put("participante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCarnet", "findByRegistro", "findByTipo"});
         COMMANDS.put("tipoparticipante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCodigo"});
     }
 
@@ -98,6 +98,9 @@ public class CommandInterpreter {
                 return HandleParticipante.findById(params);
             case "findByCarnet":
                 return HandleParticipante.findByCarnet(params);
+            // ⭐ NUEVO: Comando findByRegistro para participante
+            case "findByRegistro":
+                return HandleParticipante.findByRegistro(params);
             case "findByTipo":
                 return HandleParticipante.findByTipo(params);
             default:
@@ -140,12 +143,15 @@ public class CommandInterpreter {
                 "- findByRegister (registro)\r\n" +
                 "\r\n" +
                 "=== PARTICIPANTE ===\r\n" +
-                "- save (nombre, apellido, email, carnet, telefono, carrera, facultad, universidad, tipoParticipanteId)\r\n" +
-                "- update (id, nombre, apellido, email, carnet, telefono, carrera, facultad, universidad, tipoParticipanteId)\r\n" +
+                // ⭐ ACTUALIZADO: Nuevo orden de parámetros con campo 'registro'
+                "- save (nombre, apellido, carnet, registro, carrera, email, facultad, telefono, universidad, tipoParticipanteId)\r\n" +
+                "- update (id, nombre, apellido, carnet, registro, carrera, email, facultad, telefono, universidad, tipoParticipanteId)\r\n" +
                 "- delete (id)\r\n" +
                 "- findAll ()\r\n" +
                 "- findById (id)\r\n" +
                 "- findByCarnet (carnet)\r\n" +
+                // ⭐ NUEVO: Comando findByRegistro
+                "- findByRegistro (registro)\r\n" +
                 "- findByTipo (tipoParticipanteId)\r\n" +
                 "\r\n" +
                 "=== TIPO PARTICIPANTE ===\r\n" +
@@ -158,7 +164,10 @@ public class CommandInterpreter {
                 "\r\n" +
                 "Ejemplos:\r\n" +
                 "usuario save (Juan, Perez, juan@email.com, REG001, 70123456, 12345678, password123, RESPONSABLE)\r\n" +
-                "participante findByCarnet (12345678)\r\n" +
+                // ⭐ ACTUALIZADO: Ejemplo con nuevo orden de parámetros
+                "participante save (Juan, Perez, CI12345, REG001, Sistemas, juan@email.com, FICCT, 70123456, UAGRM, 1)\r\n" +
+                "participante findByCarnet (CI12345)\r\n" +
+                "participante findByRegistro (REG001)\r\n" +
                 "tipoparticipante save (Estudiante, EST, Estudiante universitario)\r\n";
     }
 }

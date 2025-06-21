@@ -15,8 +15,9 @@ public class BParticipante {
         this.dTipoParticipante = new DTipoParticipante();
     }
 
-    public String save(String nombre, String apellido, String email, String carnet, String telefono,
-                       String carrera, String facultad, String universidad, int tipoParticipanteId) {
+    // ⭐ ACTUALIZADO: Ahora incluye parámetro 'registro'
+    public String save(String nombre, String apellido, String carnet, String registro, String carrera,
+                       String email, String facultad, String telefono, String universidad, int tipoParticipanteId) {
 
         if (nombre == null || nombre.trim().isEmpty()) {
             return "Error: El nombre es obligatorio";
@@ -26,16 +27,17 @@ public class BParticipante {
             return "Error: El apellido es obligatorio";
         }
 
-        if (email == null || email.trim().isEmpty()) {
-            return "Error: El email es obligatorio";
-        }
-
-        if (!isValidEmail(email)) {
-            return "Error: El formato del email no es válido";
-        }
-
         if (carnet == null || carnet.trim().isEmpty()) {
             return "Error: El carnet es obligatorio";
+        }
+
+        // ⭐ NUEVA VALIDACIÓN: registro es obligatorio solo si se proporciona
+        if (registro != null && registro.trim().isEmpty()) {
+            return "Error: El registro no puede estar vacío si se proporciona";
+        }
+
+        if (email != null && !email.trim().isEmpty() && !isValidEmail(email)) {
+            return "Error: El formato del email no es válido";
         }
 
         if (tipoParticipanteId <= 0) {
@@ -47,22 +49,29 @@ public class BParticipante {
         }
 
         try {
-            String result = dParticipante.save(nombre.trim(), apellido.trim(), email.trim().toLowerCase(),
-                    carnet.trim(), telefono,
+            // ⭐ ACTUALIZADO: Nuevo orden de parámetros según DParticipante
+            String result = dParticipante.save(
+                    nombre.trim(),
+                    apellido.trim(),
+                    carnet.trim(),
+                    registro != null ? registro.trim() : null,
                     carrera != null ? carrera.trim() : null,
+                    email != null ? email.trim().toLowerCase() : null,
                     facultad != null ? facultad.trim() : null,
+                    telefono,
                     universidad != null ? universidad.trim() : null,
-                    tipoParticipanteId);
+                    tipoParticipanteId
+            );
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect (según tu corrección anterior)
     }
 
-    public String update(int id, String nombre, String apellido, String email, String carnet, String telefono,
-                         String carrera, String facultad, String universidad, int tipoParticipanteId) {
+    // ⭐ ACTUALIZADO: Ahora incluye parámetro 'registro'
+    public String update(int id, String nombre, String apellido, String carnet, String registro, String carrera,
+                         String email, String facultad, String telefono, String universidad, int tipoParticipanteId) {
 
         if (id <= 0) {
             return "Error: El ID debe ser mayor a 0";
@@ -76,16 +85,17 @@ public class BParticipante {
             return "Error: El apellido es obligatorio";
         }
 
-        if (email == null || email.trim().isEmpty()) {
-            return "Error: El email es obligatorio";
-        }
-
-        if (!isValidEmail(email)) {
-            return "Error: El formato del email no es válido";
-        }
-
         if (carnet == null || carnet.trim().isEmpty()) {
             return "Error: El carnet es obligatorio";
+        }
+
+        // ⭐ NUEVA VALIDACIÓN: registro
+        if (registro != null && registro.trim().isEmpty()) {
+            return "Error: El registro no puede estar vacío si se proporciona";
+        }
+
+        if (email != null && !email.trim().isEmpty() && !isValidEmail(email)) {
+            return "Error: El formato del email no es válido";
         }
 
         if (tipoParticipanteId <= 0) {
@@ -97,18 +107,25 @@ public class BParticipante {
         }
 
         try {
-            String result = dParticipante.update(id, nombre.trim(), apellido.trim(), email.trim().toLowerCase(),
-                    carnet.trim(), telefono,
+            // ⭐ ACTUALIZADO: Nuevo orden de parámetros según DParticipante
+            String result = dParticipante.update(
+                    id,
+                    nombre.trim(),
+                    apellido.trim(),
+                    carnet.trim(),
+                    registro != null ? registro.trim() : null,
                     carrera != null ? carrera.trim() : null,
+                    email != null ? email.trim().toLowerCase() : null,
                     facultad != null ? facultad.trim() : null,
+                    telefono,
                     universidad != null ? universidad.trim() : null,
-                    tipoParticipanteId);
+                    tipoParticipanteId
+            );
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String delete(int id) {
@@ -122,9 +139,8 @@ public class BParticipante {
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public List<String[]> findAllParticipantes() {
@@ -135,9 +151,8 @@ public class BParticipante {
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String[] findOneById(int id) {
@@ -153,9 +168,8 @@ public class BParticipante {
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public String[] findOneByCarnet(String carnet) {
@@ -171,9 +185,26 @@ public class BParticipante {
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
+    }
+
+    // ⭐ NUEVO: Método para buscar por registro
+    public String[] findOneByRegistro(String registro) {
+
+        if (registro == null || registro.trim().isEmpty()) {
+            System.out.println("Error: El registro es obligatorio");
+            return null;
+        }
+
+        try {
+            String[] result = dParticipante.findOneByRegistro(registro.trim());
+            return result;
+        } catch (Exception e) {
+            System.out.println("Error en la capa de negocio: " + e.getMessage());
+            return null;
+        }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     public List<String[]> findByTipoParticipante(int tipoParticipanteId) {
@@ -189,9 +220,8 @@ public class BParticipante {
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
             return null;
-        } finally {
-            dParticipante.disconnect();
         }
+        // ⭐ ELIMINADO: finally con disconnect
     }
 
     private boolean isValidEmail(String email) {
@@ -211,5 +241,6 @@ public class BParticipante {
             return false;
         }
     }
+
 
 }

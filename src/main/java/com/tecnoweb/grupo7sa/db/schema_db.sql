@@ -34,9 +34,10 @@ CREATE TABLE participante
 (
     id                   SERIAL PRIMARY KEY,
     apellido             VARCHAR(100) NOT NULL,
-    carnet               VARCHAR(20)  NOT NULL UNIQUE,
+    carnet               VARCHAR(20)  NOT NULL,
+    registro             VARCHAR(50),
     carrera              VARCHAR(100),
-    email                VARCHAR(255) NOT NULL UNIQUE,
+    email                VARCHAR(255),
     facultad             VARCHAR(100),
     nombre               VARCHAR(100) NOT NULL,
     telefono             VARCHAR(20),
