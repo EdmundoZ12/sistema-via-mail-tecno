@@ -260,7 +260,7 @@ public class CommandInterpreter {
                 "participante findByCarnet (CI12345)\r\n" +
                 "participante findByRegistro (REG001)\r\n" +
                 "tipoparticipante save (Estudiante, EST, Estudiante universitario)\r\n" +
-                "gestion save (Semestre con modalidad híbrida, 2024-03-01, 2024-07-15, Semestre I-2024)\r\n" +
+                "gestion save (Cursos Verano, 2024-03-01, 2024-07-15, Semestre I-2024)\r\n" +
                 "gestion update (1, Semestre actualizado, 2024-03-01, 2024-07-20, Semestre I-2024)\r\n" +
                 "gestion delete (1)\r\n" +
                 "gestion reactivate (1)\r\n" +
