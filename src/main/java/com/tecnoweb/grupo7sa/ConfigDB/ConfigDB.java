@@ -12,7 +12,7 @@ public class ConfigDB {
         this.user = "postgres";
 
 //        this.password = "grup007grup007*";
-        this.password = "ejzr1203";
+        this.password = "root";
 
 //        this.host = "mail.tecnoweb.org.bo";
         this.host = "127.0.0.1";
