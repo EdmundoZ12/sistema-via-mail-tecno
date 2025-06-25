@@ -1,6 +1,9 @@
 package com.tecnoweb.grupo7sa.command;
 
+import com.tecnoweb.grupo7sa.handle.HandleReporte;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CommandInterpreter {
@@ -31,6 +34,12 @@ public class CommandInterpreter {
 
         // CU6 - Gestión de Pagos (CRUD + búsqueda esencial)
         COMMANDS.put("pago", new String[]{"save", "update", "delete", "findAll", "findById", "findByPreinscripcion"});
+
+        // CU7 - Gestión de Certificados (esenciales)
+        COMMANDS.put("certificado", new String[]{"save", "generar", "list", "find", "verificar"});
+
+        // CU8 - Reportes y Estadísticas (simplificado)
+        COMMANDS.put("reporte", new String[]{"inscripciones", "aprobacion", "participantes", "certificados", "dashboard"});
     }
 
     public static String interpret(String subject) {
@@ -95,8 +104,12 @@ public class CommandInterpreter {
                 return executeNotaTareaCommand(command, params);
             case "asistencia":
                 return executeAsistenciaCommand(command, params);
-            case "pago": // ⭐ NUEVO CU6
+            case "pago":
                 return executePagoCommand(command, params);
+            case "certificado": // ⭐ NUEVO CU7
+                return executeCertificadoCommand(command, params);
+            case "reporte": // ⭐ NUEVO CU8
+                return executeReporteCommand(command, params);
             default:
                 return "Entidad no implementada aún: " + entity;
         }
@@ -291,7 +304,6 @@ public class CommandInterpreter {
         }
     }
 
-    // ⭐ NUEVO: CU6 - Gestión de Pagos
     private static String executePagoCommand(String command, String params) {
         switch (command) {
             case "save":
@@ -308,6 +320,108 @@ public class CommandInterpreter {
                 return HandlePago.findByPreinscripcion(params);
             default:
                 return "Comando no implementado: " + command;
+        }
+    }
+
+    // ⭐ NUEVO: CU7 - Gestión de Certificados
+    private static String executeCertificadoCommand(String command, String params) {
+        switch (command) {
+            case "save":
+                return HandleCertificado.save(params);
+            case "generar":
+                return HandleCertificado.generar(params);
+            case "list":
+                return HandleCertificado.findAll();
+            case "find":
+                return HandleCertificado.findOneById(params);
+            case "verificar":
+                return HandleCertificado.verificar(params);
+            default:
+                return "Comando no implementado: " + command;
+        }
+    }
+
+    // ⭐ NUEVO: CU8 - Reportes y Estadísticas
+    private static String executeReporteCommand(String command, String params) {
+        HandleReporte handleReporte = new HandleReporte();
+
+        try {
+            switch (command) {
+                case "inscripciones":
+                    if (params.isEmpty()) {
+                        return "Uso: reporte inscripciones (cursoId)";
+                    }
+                    int cursoId = Integer.parseInt(params.trim());
+                    List<String[]> inscripciones = handleReporte.inscripcionesPorCurso(cursoId);
+                    if (inscripciones == null || inscripciones.isEmpty()) {
+                        return "No hay inscripciones para el curso especificado.";
+                    }
+                    StringBuilder sbInsc = new StringBuilder("=== INSCRIPCIONES POR CURSO ===\n");
+                    for (String[] i : inscripciones) {
+                        sbInsc.append("Participante: ").append(i[0]).append(" | Estado: ").append(i[1]).append("\n");
+                    }
+                    return sbInsc.toString();
+
+                case "aprobacion":
+                    if (params.isEmpty()) {
+                        return "Uso: reporte aprobacion (cursoId)";
+                    }
+                    int cursoIdAprob = Integer.parseInt(params.trim());
+                    String[] aprobacion = handleReporte.aprobacionPorCurso(cursoIdAprob);
+                    if (aprobacion == null) {
+                        return "No hay datos de aprobación para el curso especificado.";
+                    }
+                    return "=== REPORTE DE APROBACIÓN ===\nCurso: " + aprobacion[0] +
+                            "\nTotal Inscritos: " + aprobacion[1] +
+                            "\nAprobados: " + aprobacion[2] +
+                            "\nPorcentaje: " + aprobacion[3] + "%";
+
+                case "participantes":
+                    List<String[]> participantes = handleReporte.participantesPorTipo();
+                    if (participantes == null || participantes.isEmpty()) {
+                        return "No hay datos de participantes por tipo.";
+                    }
+                    StringBuilder sbPart = new StringBuilder("=== PARTICIPANTES POR TIPO ===\n");
+                    for (String[] p : participantes) {
+                        sbPart.append("Tipo: ").append(p[0]).append(" | Cantidad: ").append(p[1]).append("\n");
+                    }
+                    return sbPart.toString();
+
+                case "certificados":
+                    if (params.isEmpty()) {
+                        return "Uso: reporte certificados (gestionId)";
+                    }
+                    int gestIdCert = Integer.parseInt(params.trim());
+                    List<String[]> certificados = handleReporte.certificadosEmitidos(gestIdCert);
+                    if (certificados == null || certificados.isEmpty()) {
+                        return "No hay certificados emitidos para la gestión especificada.";
+                    }
+                    StringBuilder sbCert = new StringBuilder("=== CERTIFICADOS EMITIDOS ===\n");
+                    for (String[] c : certificados) {
+                        sbCert.append("Participante: ").append(c[0]).append(" | Curso: ").append(c[1]).append(" | Tipo: ").append(c[2]).append("\n");
+                    }
+                    return sbCert.toString();
+
+                case "dashboard":
+                    String[] dashboard = handleReporte.dashboardGeneral();
+                    if (dashboard == null) {
+                        return "No hay datos para el dashboard general.";
+                    }
+                    return "=== DASHBOARD GENERAL ===\n" +
+                            "Total Participantes: " + dashboard[0] + "\n" +
+                            "Total Cursos: " + dashboard[1] + "\n" +
+                            "Ingresos del Mes: Bs. " + dashboard[2] + "\n" +
+                            "Certificados Emitidos: " + dashboard[3];
+
+                default:
+                    return "Comando de reporte no implementado: " + command;
+            }
+        } catch (NumberFormatException e) {
+            return "Error: Parámetro numérico inválido.";
+        } catch (Exception e) {
+            return "Error al generar reporte: " + e.getMessage();
+        } finally {
+            handleReporte.disconnect();
         }
     }
 
@@ -380,12 +494,29 @@ public class CommandInterpreter {
                 "• save (inscripcionId, fecha, estado) | update (id, inscripcionId, fecha, estado)\r\n" +
                 "• delete (id) | findAll () | findById (id)\r\n" +
                 "\r\n" +
-                "=== CU6 - PAGOS ⭐ NUEVO ===\r\n" +
+                "=== CU6 - PAGOS ===\r\n" +
                 "\r\n" +
                 "💳 PAGOS:\r\n" +
                 "• save (preinscripcionId, monto, recibo) | update (id, preinscripcionId, monto, recibo)\r\n" +
                 "• delete (id) | findAll () | findById (id)\r\n" +
                 "• findByPreinscripcion (preinscripcionId) ⭐ VERIFICAR PAGO\r\n" +
+                "\r\n" +
+                "=== CU7 - CERTIFICADOS ⭐ NUEVO ===\r\n" +
+                "\r\n" +
+                "📜 CERTIFICADOS:\r\n" +
+                "• save (inscripcionId, tipo, codigoVerificacion, urlPdf)\r\n" +
+                "• generar (inscripcionId) ⭐ GENERAR AUTOMÁTICO\r\n" +
+                "• list () | find (id)\r\n" +
+                "• verificar (codigo) ⭐ VALIDAR CERTIFICADO\r\n" +
+                "\r\n" +
+                "=== CU8 - REPORTES ⭐ NUEVO ===\r\n" +
+                "\r\n" +
+                "📊 REPORTES:\r\n" +
+                "• inscripciones (cursoId) ⭐ LISTA DE INSCRITOS\r\n" +
+                "• aprobacion (cursoId) ⭐ PORCENTAJE DE APROBACIÓN\r\n" +
+                "• participantes () ⭐ RESUMEN POR TIPO\r\n" +
+                "• certificados (gestionId) ⭐ CERTIFICADOS EMITIDOS\r\n" +
+                "• dashboard () ⭐ VISTA GENERAL\r\n" +
                 "\r\n" +
                 "=== 🔄 FLUJO BÁSICO COMPLETO ===\r\n" +
                 "\r\n" +
@@ -410,12 +541,22 @@ public class CommandInterpreter {
                 "notatarea save (1, 1, 85.5)\r\n" +
                 "asistencia save (1, 2025-03-01, presente)\r\n" +
                 "\r\n" +
-                "# 5. Registro de pago ⭐ NUEVO\r\n" +
+                "# 5. Registro de pago\r\n" +
                 "pago save (1, 50.00, REC-001)\r\n" +
                 "pago findByPreinscripcion (1)\r\n" +
                 "\r\n" +
                 "# 6. Finalización\r\n" +
                 "inscripcion updateNota (1, 88.0, APROBADO)\r\n" +
+                "\r\n" +
+                "# 7. Certificados ⭐ NUEVO\r\n" +
+                "certificado generar (1)\r\n" +
+                "certificado list ()\r\n" +
+                "certificado verificar (CERT123456)\r\n" +
+                "\r\n" +
+                "# 8. Reportes ⭐ NUEVO\r\n" +
+                "reporte inscripciones (1)\r\n" +
+                "reporte aprobacion (1)\r\n" +
+                "reporte dashboard ()\r\n" +
                 "\r\n" +
                 "=== 📋 COMANDOS ESENCIALES POR CASO DE USO ===\r\n" +
                 "\r\n" +
@@ -425,12 +566,15 @@ public class CommandInterpreter {
                 "CU4: preinscripcion findAll () | preinscripcion approve (id)\r\n" +
                 "CU5: tarea findAll () | notatarea findAll () | asistencia findAll ()\r\n" +
                 "CU6: pago findAll () | pago findByPreinscripcion (id)\r\n" +
+                "CU7: certificado generar (id) | certificado verificar (codigo) ⭐\r\n" +
+                "CU8: reporte dashboard () | reporte aprobacion (id) ⭐\r\n" +
                 "\r\n" +
                 "=== 📧 OPTIMIZADO PARA CORREO ELECTRÓNICO ===\r\n" +
                 "\r\n" +
-                "✅ Solo comandos esenciales (62 vs 107 originales)\r\n" +
+                "✅ Solo comandos esenciales (72 vs 107 originales)\r\n" +
                 "✅ CRUD básico para todas las entidades\r\n" +
                 "✅ Funcionalidades críticas mantenidas\r\n" +
+                "✅ Certificados y reportes implementados\r\n" +
                 "✅ Sintaxis simple para emails\r\n" +
                 "✅ Respuestas concisas\r\n" +
                 "\r\n" +
@@ -438,12 +582,13 @@ public class CommandInterpreter {
                 "\r\n" +
                 "• Estados de inscripción: INSCRITO, APROBADO, REPROBADO\r\n" +
                 "• Estados de asistencia: presente, ausente, justificado\r\n" +
+                "• Tipos de certificado: PARTICIPACION, APROBACION\r\n" +
                 "• Niveles de curso: Basico, Intermedio, Avanzado\r\n" +
                 "• Roles de usuario: RESPONSABLE, ADMINISTRATIVO, TUTOR\r\n" +
                 "• Fechas en formato: YYYY-MM-DD\r\n" +
                 "• Use 'null' para campos opcionales\r\n" +
                 "\r\n" +
-                "🚀 Sistema CICIT - Versión Simplificada para Correo Electrónico\r\n" +
+                "🚀 Sistema CICIT - Versión Completa con Certificados y Reportes\r\n" +
                 "Desarrollado por Grupo 7SA - Tecnología Web";
     }
 }
