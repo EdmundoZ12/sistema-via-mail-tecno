@@ -11,15 +11,24 @@ public class HandleGestion {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
+    // CU2 - HANDLERS PARA GESTIÓN DE PERÍODOS ACADÉMICOS
+
+    /**
+     * Crear nueva gestión
+     * Parámetros: nombre, descripcion, fechaInicio, fechaFin
+     */
     public static String save(String params) {
         String[] partsOfParams = params.split(",\\s*");
 
         if (partsOfParams.length == 4) {
             try {
-                String descripcion = partsOfParams[0].trim();
-                String fechaInicioStr = partsOfParams[1].trim();
-                String fechaFinStr = partsOfParams[2].trim();
-                String nombre = partsOfParams[3].trim();
+                String nombre = partsOfParams[0].trim();
+                String descripcion = partsOfParams[1].trim();
+                String fechaInicioStr = partsOfParams[2].trim();
+                String fechaFinStr = partsOfParams[3].trim();
+
+                // Convertir "null" string a null real para descripción
+                if ("null".equalsIgnoreCase(descripcion)) descripcion = null;
 
                 // Convertir strings a Date
                 Date fechaInicio = convertStringToDate(fechaInicioStr);
@@ -33,26 +42,33 @@ public class HandleGestion {
                 }
 
                 BGestion bGestion = new BGestion();
-                String result = bGestion.crearGestion(descripcion, fechaInicio, fechaFin, nombre);
+                String result = bGestion.save(nombre, descripcion, fechaInicio, fechaFin);
                 return result;
             } catch (Exception e) {
                 return "Error al guardar gestión: " + e.getMessage();
             }
         } else {
-            return "Error: Número de parámetros incorrecto para save. Esperados: 4 (descripcion,fechaInicio,fechaFin,nombre), Recibidos: " + partsOfParams.length;
+            return "Error: Número de parámetros incorrecto para save. Esperados: 4 (nombre, descripcion, fechaInicio, fechaFin), Recibidos: " + partsOfParams.length;
         }
     }
 
+    /**
+     * Actualizar gestión existente
+     * Parámetros: id, nombre, descripcion, fechaInicio, fechaFin
+     */
     public static String update(String params) {
         String[] partsOfParams = params.split(",\\s*");
 
         if (partsOfParams.length == 5) {
             try {
                 int id = Integer.parseInt(partsOfParams[0].trim());
-                String descripcion = partsOfParams[1].trim();
-                String fechaInicioStr = partsOfParams[2].trim();
-                String fechaFinStr = partsOfParams[3].trim();
-                String nombre = partsOfParams[4].trim();
+                String nombre = partsOfParams[1].trim();
+                String descripcion = partsOfParams[2].trim();
+                String fechaInicioStr = partsOfParams[3].trim();
+                String fechaFinStr = partsOfParams[4].trim();
+
+                // Convertir "null" string a null real para descripción
+                if ("null".equalsIgnoreCase(descripcion)) descripcion = null;
 
                 // Convertir strings a Date
                 Date fechaInicio = convertStringToDate(fechaInicioStr);
@@ -66,7 +82,7 @@ public class HandleGestion {
                 }
 
                 BGestion bGestion = new BGestion();
-                String result = bGestion.actualizarGestion(id, descripcion, fechaInicio, fechaFin, nombre);
+                String result = bGestion.update(id, nombre, descripcion, fechaInicio, fechaFin);
                 return result;
             } catch (NumberFormatException e) {
                 return "Error: ID debe ser un número válido. " + e.getMessage();
@@ -74,28 +90,36 @@ public class HandleGestion {
                 return "Error al actualizar gestión: " + e.getMessage();
             }
         } else {
-            return "Error: Número de parámetros incorrecto para update. Esperados: 5 (id,descripcion,fechaInicio,fechaFin,nombre), Recibidos: " + partsOfParams.length;
+            return "Error: Número de parámetros incorrecto para update. Esperados: 5 (id, nombre, descripcion, fechaInicio, fechaFin), Recibidos: " + partsOfParams.length;
         }
     }
 
+    /**
+     * Desactivar gestión
+     * Parámetros: id
+     */
     public static String delete(String params) {
         try {
             int id = Integer.parseInt(params.trim());
             BGestion bGestion = new BGestion();
-            String result = bGestion.desactivarGestion(id);
+            String result = bGestion.delete(id);
             return result;
         } catch (NumberFormatException e) {
             return "Error: El ID debe ser numérico. " + e.getMessage();
         } catch (Exception e) {
-            return "Error al desactivar gestión: " + e.getMessage();
+            return "Error al eliminar gestión: " + e.getMessage();
         }
     }
 
+    /**
+     * Reactivar gestión
+     * Parámetros: id
+     */
     public static String reactivate(String params) {
         try {
             int id = Integer.parseInt(params.trim());
             BGestion bGestion = new BGestion();
-            String result = bGestion.reactivarGestion(id);
+            String result = bGestion.reactivate(id);
             return result;
         } catch (NumberFormatException e) {
             return "Error: El ID debe ser numérico. " + e.getMessage();
@@ -104,10 +128,13 @@ public class HandleGestion {
         }
     }
 
+    /**
+     * Listar todas las gestiones activas
+     */
     public static String findAll() {
         try {
             BGestion bGestion = new BGestion();
-            List<String[]> gestiones = bGestion.obtenerGestiones();
+            List<String[]> gestiones = bGestion.findAll();
 
             if (gestiones == null || gestiones.isEmpty()) {
                 return "No hay gestiones registradas.";
@@ -115,37 +142,47 @@ public class HandleGestion {
 
             StringBuilder sb = new StringBuilder("=== GESTIONES REGISTRADAS ===\n");
             for (String[] gestion : gestiones) {
-                // [0]=id, [1]=descripcion, [2]=estado, [3]=fecha_inicio, [4]=fecha_fin, [5]=nombre
+                // Array: [0]id, [1]nombre, [2]descripcion, [3]fechaInicio, [4]fechaFin, [5]activo
                 sb.append("ID: ").append(gestion[0])
-                        .append(" | Nombre: ").append(gestion[5])
-                        .append(" | Estado: ").append(gestion[2].equals("true") ? "Activo" : "Inactivo")
+                        .append(" | Nombre: ").append(gestion[1])
                         .append(" | Inicio: ").append(gestion[3])
-                        .append(" | Fin: ").append(gestion[4]).append("\n");
+                        .append(" | Fin: ").append(gestion[4])
+                        .append(" | Activo: ").append(gestion[5].equals("true") ? "Sí" : "No");
+
+                if (gestion[2] != null && !gestion[2].isEmpty()) {
+                    sb.append(" | Descripción: ").append(gestion[2]);
+                }
+                sb.append("\n");
             }
+            sb.append("Total gestiones: ").append(gestiones.size());
             return sb.toString();
         } catch (Exception e) {
             return "Error al recuperar gestiones: " + e.getMessage();
         }
     }
 
+    /**
+     * Buscar gestión por ID
+     * Parámetros: id
+     */
     public static String findById(String params) {
         try {
             int id = Integer.parseInt(params.trim());
             BGestion bGestion = new BGestion();
-            String[] gestion = bGestion.obtenerUnaGestion(id);
+            String[] gestion = bGestion.findOneById(id);
 
             if (gestion == null) {
                 return "No se encontró gestión con ID: " + id;
             }
 
-            // [0]=id, [1]=descripcion, [2]=estado, [3]=fecha_inicio, [4]=fecha_fin, [5]=nombre
+            // Array: [0]id, [1]nombre, [2]descripcion, [3]fechaInicio, [4]fechaFin, [5]activo
             return "Gestión encontrada:\n" +
                     "ID: " + gestion[0] + "\n" +
-                    "Nombre: " + gestion[5] + "\n" +
-                    "Descripción: " + (gestion[1] != null ? gestion[1] : "Sin descripción") + "\n" +
-                    "Estado: " + (gestion[2].equals("true") ? "Activo" : "Inactivo") + "\n" +
+                    "Nombre: " + gestion[1] + "\n" +
+                    "Descripción: " + (gestion[2] != null ? gestion[2] : "Sin descripción") + "\n" +
                     "Fecha Inicio: " + gestion[3] + "\n" +
-                    "Fecha Fin: " + gestion[4];
+                    "Fecha Fin: " + gestion[4] + "\n" +
+                    "Activo: " + (gestion[5].equals("true") ? "Sí" : "No");
         } catch (NumberFormatException e) {
             return "Error: El ID debe ser numérico. " + e.getMessage();
         } catch (Exception e) {
@@ -153,6 +190,10 @@ public class HandleGestion {
         }
     }
 
+    /**
+     * Buscar gestiones por rango de fechas
+     * Parámetros: fechaInicio, fechaFin
+     */
     public static String findByDateRange(String params) {
         String[] partsOfParams = params.split(",\\s*");
 
@@ -173,7 +214,7 @@ public class HandleGestion {
                 }
 
                 BGestion bGestion = new BGestion();
-                List<String[]> gestiones = bGestion.obtenerGestionesPorFecha(fechaInicio, fechaFin);
+                List<String[]> gestiones = bGestion.findByDateRange(fechaInicio, fechaFin);
 
                 if (gestiones == null || gestiones.isEmpty()) {
                     return "No hay gestiones en el rango de fechas especificado.";
@@ -182,25 +223,60 @@ public class HandleGestion {
                 StringBuilder sb = new StringBuilder("=== GESTIONES POR RANGO DE FECHAS ===\n");
                 for (String[] gestion : gestiones) {
                     sb.append("ID: ").append(gestion[0])
-                            .append(" | Nombre: ").append(gestion[5])
-                            .append(" | Estado: ").append(gestion[2].equals("true") ? "Activo" : "Inactivo")
+                            .append(" | Nombre: ").append(gestion[1])
                             .append(" | Inicio: ").append(gestion[3])
                             .append(" | Fin: ").append(gestion[4]).append("\n");
                 }
+                sb.append("Total gestiones en rango: ").append(gestiones.size());
                 return sb.toString();
             } catch (Exception e) {
                 return "Error al buscar gestiones por rango de fechas: " + e.getMessage();
             }
         } else {
-            return "Error: Número de parámetros incorrecto para findByDateRange. Esperados: 2 (fechaInicio,fechaFin), Recibidos: " + partsOfParams.length;
+            return "Error: Número de parámetros incorrecto para findByDateRange. Esperados: 2 (fechaInicio, fechaFin), Recibidos: " + partsOfParams.length;
         }
     }
 
+    /**
+     * Obtener gestiones vigentes actualmente (⭐ ENDPOINT IMPORTANTE)
+     */
+    public static String findCurrent() {
+        try {
+            BGestion bGestion = new BGestion();
+            List<String[]> gestiones = bGestion.findCurrent();
+
+            if (gestiones == null || gestiones.isEmpty()) {
+                return "No hay gestiones vigentes actualmente.";
+            }
+
+            StringBuilder sb = new StringBuilder("=== GESTIONES VIGENTES ACTUALMENTE ===\n");
+            for (String[] gestion : gestiones) {
+                sb.append("ID: ").append(gestion[0])
+                        .append(" | Nombre: ").append(gestion[1])
+                        .append(" | Inicio: ").append(gestion[3])
+                        .append(" | Fin: ").append(gestion[4]);
+
+                if (gestion[2] != null && !gestion[2].isEmpty()) {
+                    sb.append(" | Descripción: ").append(gestion[2]);
+                }
+                sb.append("\n");
+            }
+            sb.append("Total gestiones vigentes: ").append(gestiones.size());
+            return sb.toString();
+        } catch (Exception e) {
+            return "Error al recuperar gestiones vigentes: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Buscar gestiones por nombre (búsqueda parcial)
+     * Parámetros: nombre
+     */
     public static String findByName(String params) {
         try {
             String nombre = params.trim();
             BGestion bGestion = new BGestion();
-            List<String[]> gestiones = bGestion.buscarGestionesPorNombre(nombre);
+            List<String[]> gestiones = bGestion.findByName(nombre);
 
             if (gestiones == null || gestiones.isEmpty()) {
                 return "No hay gestiones que coincidan con el nombre: " + nombre;
@@ -209,12 +285,16 @@ public class HandleGestion {
             StringBuilder sb = new StringBuilder("=== GESTIONES POR NOMBRE ===\n");
             for (String[] gestion : gestiones) {
                 sb.append("ID: ").append(gestion[0])
-                        .append(" | Nombre: ").append(gestion[5])
-                        .append(" | Estado: ").append(gestion[2].equals("true") ? "Activo" : "Inactivo")
+                        .append(" | Nombre: ").append(gestion[1])
                         .append(" | Inicio: ").append(gestion[3])
-                        .append(" | Fin: ").append(gestion[4])
-                        .append(" | Descripción: ").append(gestion[1] != null ? gestion[1] : "Sin descripción").append("\n");
+                        .append(" | Fin: ").append(gestion[4]);
+
+                if (gestion[2] != null && !gestion[2].isEmpty()) {
+                    sb.append(" | Descripción: ").append(gestion[2]);
+                }
+                sb.append("\n");
             }
+            sb.append("Total gestiones encontradas: ").append(gestiones.size());
             return sb.toString();
         } catch (Exception e) {
             return "Error al buscar gestiones por nombre: " + e.getMessage();
@@ -223,6 +303,7 @@ public class HandleGestion {
 
     /**
      * Método auxiliar para convertir String a java.sql.Date
+     *
      * @param dateString Fecha en formato yyyy-MM-dd
      * @return java.sql.Date o null si el formato es inválido
      */

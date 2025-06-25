@@ -26,33 +26,32 @@ public class DGestion {
         }
     }
 
+    // CU2 - MÉTODOS PARA GESTIÓN DE PERÍODOS ACADÉMICOS
+
     /**
-     * Crear una nueva gestión académica (período/semestre)
-     * @param descripcion Información adicional del período (ej: "Semestre con modalidad híbrida")
+     * Crear nueva gestión académica (período/semestre)
+     *
+     * @param nombre      Nombre del período (ej: "2025-1", "Semestre I-2025")
+     * @param descripcion Información adicional del período
      * @param fechaInicio Fecha de inicio del período académico
-     * @param fechaFin Fecha de finalización del período académico
-     * @param nombre Nombre del período (ej: "Semestre I-2024", "Gestión 2024")
+     * @param fechaFin    Fecha de finalización del período académico
      * @return Mensaje de resultado
      */
-    public String crearGestion(String descripcion, Date fechaInicio, Date fechaFin, String nombre) {
-        String query = "INSERT INTO gestion (descripcion, estado, fecha_inicio, fecha_fin, nombre) VALUES (?, ?, ?, ?, ?)";
+    public String save(String nombre, String descripcion, Date fechaInicio, Date fechaFin) {
+        String query = "INSERT INTO GESTION (nombre, descripcion, fecha_inicio, fecha_fin, activo) VALUES (?, ?, ?, ?, ?)";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, descripcion);
-            ps.setBoolean(2, true); // Estado activo por defecto
+            ps.setString(1, nombre);
+            ps.setString(2, descripcion);
             ps.setDate(3, fechaInicio);
             ps.setDate(4, fechaFin);
-            ps.setString(5, nombre);
+            ps.setBoolean(5, true); // Gestión activa por defecto
 
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Gestión creada exitosamente";
-            } else {
-                return "Error: No se pudo crear la gestión";
-            }
+            return result > 0 ? "Gestión creada exitosamente" : "Error: No se pudo crear la gestión";
 
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
@@ -60,46 +59,44 @@ public class DGestion {
     }
 
     /**
-     * Actualizar un período académico existente
-     * @param id ID del período académico
-     * @param descripcion Nueva información adicional
-     * @param fechaInicio Nueva fecha de inicio del período
-     * @param fechaFin Nueva fecha de finalización del período
-     * @param nombre Nuevo nombre del período
+     * Actualizar gestión académica existente
+     *
+     * @param id          ID de la gestión
+     * @param nombre      Nuevo nombre del período
+     * @param descripcion Nueva descripción
+     * @param fechaInicio Nueva fecha de inicio
+     * @param fechaFin    Nueva fecha de fin
      * @return Mensaje de resultado
      */
-    public String actualizarGestion(int id, String descripcion, Date fechaInicio, Date fechaFin, String nombre) {
-        String query = "UPDATE gestion SET descripcion = ?, fecha_inicio = ?, fecha_fin = ?, nombre = ? WHERE id = ?";
+    public String update(int id, String nombre, String descripcion, Date fechaInicio, Date fechaFin) {
+        String query = "UPDATE GESTION SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ? WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, descripcion);
-            ps.setDate(2, fechaInicio);
-            ps.setDate(3, fechaFin);
-            ps.setString(4, nombre);
+            ps.setString(1, nombre);
+            ps.setString(2, descripcion);
+            ps.setDate(3, fechaInicio);
+            ps.setDate(4, fechaFin);
             ps.setInt(5, id);
 
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Período académico actualizado exitosamente";
-            } else {
-                return "Error: No se pudo actualizar el período académico";
-            }
+            return result > 0 ? "Gestión actualizada exitosamente" : "Error: No se pudo actualizar la gestión";
 
         } catch (SQLException e) {
-            return "Error en el Sistema: " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
 
     /**
-     * Desactivar un período académico (marcar como inactivo)
-     * @param id ID del período académico
+     * Desactivar gestión (soft delete)
+     *
+     * @param id ID de la gestión
      * @return Mensaje de resultado
      */
-    public String desactivarGestion(int id) {
-        String query = "UPDATE gestion SET estado = false WHERE id = ?";
+    public String delete(int id) {
+        String query = "UPDATE GESTION SET activo = false WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -108,11 +105,7 @@ public class DGestion {
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Período académico desactivado exitosamente";
-            } else {
-                return "Error: No se pudo desactivar el período académico";
-            }
+            return result > 0 ? "Gestión desactivada exitosamente" : "Error: No se pudo desactivar la gestión";
 
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
@@ -120,11 +113,35 @@ public class DGestion {
     }
 
     /**
-     * Obtener todos los períodos académicos activos
-     * @return Lista de períodos académicos
+     * Reactivar gestión desactivada
+     *
+     * @param id ID de la gestión
+     * @return Mensaje de resultado
      */
-    public List<String[]> obtenerGestiones() {
-        String query = "SELECT id, descripcion, estado, fecha_inicio, fecha_fin, nombre FROM gestion WHERE estado = true ORDER BY fecha_inicio DESC";
+    public String reactivate(int id) {
+        String query = "UPDATE GESTION SET activo = true WHERE id = ?";
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ps.setInt(1, id);
+
+            int result = ps.executeUpdate();
+            ps.close();
+
+            return result > 0 ? "Gestión reactivada exitosamente" : "Error: No se pudo reactivar la gestión";
+
+        } catch (SQLException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Listar todas las gestiones activas
+     *
+     * @return Lista de gestiones
+     */
+    public List<String[]> findAll() {
+        String query = "SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, activo FROM GESTION WHERE activo = true ORDER BY fecha_inicio DESC";
         List<String[]> gestiones = new ArrayList<>();
 
         try {
@@ -134,29 +151,26 @@ public class DGestion {
             while (rs.next()) {
                 String[] gestion = new String[6];
                 gestion[0] = String.valueOf(rs.getInt("id"));
-                gestion[1] = rs.getString("descripcion");
-                gestion[2] = String.valueOf(rs.getBoolean("estado"));
+                gestion[1] = rs.getString("nombre");
+                gestion[2] = rs.getString("descripcion");
                 gestion[3] = rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toString() : "";
                 gestion[4] = rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toString() : "";
-                gestion[5] = rs.getString("nombre");
+                gestion[5] = String.valueOf(rs.getBoolean("activo"));
                 gestiones.add(gestion);
 
-                // Mostrar cada período académico en consola
-                System.out.println("Período Académico: ID=" + gestion[0] +
-                        ", Descripción=" + gestion[1] +
-                        ", Estado=" + (gestion[2].equals("true") ? "Activo" : "Inactivo") +
-                        ", Fecha Inicio=" + gestion[3] +
-                        ", Fecha Fin=" + gestion[4] +
-                        ", Nombre=" + gestion[5]);
+                System.out.println("Gestión: ID=" + gestion[0] +
+                        ", Nombre=" + gestion[1] +
+                        ", Inicio=" + gestion[3] +
+                        ", Fin=" + gestion[4]);
             }
 
             rs.close();
             ps.close();
 
             if (gestiones.isEmpty()) {
-                System.out.println("No se encontraron períodos académicos activos en el sistema");
+                System.out.println("No se encontraron gestiones activas");
             } else {
-                System.out.println("Total períodos académicos encontrados: " + gestiones.size());
+                System.out.println("Total gestiones encontradas: " + gestiones.size());
             }
 
         } catch (SQLException e) {
@@ -167,12 +181,13 @@ public class DGestion {
     }
 
     /**
-     * Obtener un período académico específico por ID
-     * @param id ID del período académico
-     * @return Array con datos del período o null si no existe
+     * Buscar gestión por ID
+     *
+     * @param id ID de la gestión
+     * @return Array con datos de la gestión o null si no existe
      */
-    public String[] obtenerUnaGestion(int id) {
-        String query = "SELECT id, descripcion, estado, fecha_inicio, fecha_fin, nombre FROM gestion WHERE id = ?";
+    public String[] findOneById(int id) {
+        String query = "SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, activo FROM GESTION WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -182,46 +197,38 @@ public class DGestion {
             if (rs.next()) {
                 String[] gestion = new String[6];
                 gestion[0] = String.valueOf(rs.getInt("id"));
-                gestion[1] = rs.getString("descripcion");
-                gestion[2] = String.valueOf(rs.getBoolean("estado"));
+                gestion[1] = rs.getString("nombre");
+                gestion[2] = rs.getString("descripcion");
                 gestion[3] = rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toString() : "";
                 gestion[4] = rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toString() : "";
-                gestion[5] = rs.getString("nombre");
+                gestion[5] = String.valueOf(rs.getBoolean("activo"));
 
-                System.out.println("Gestión encontrada por ID: ID=" + gestion[0] +
-                        ", Descripción=" + gestion[1] +
-                        ", Estado=" + gestion[2] +
-                        ", Fecha Inicio=" + gestion[3] +
-                        ", Fecha Fin=" + gestion[4] +
-                        ", Nombre=" + gestion[5]);
-
+                System.out.println("Gestión encontrada: " + gestion[1]);
                 rs.close();
                 ps.close();
-
                 return gestion;
-            } else {
-                rs.close();
-                ps.close();
-
-                System.out.println("No se encontró la gestión con ID: " + id);
-                return null;
             }
 
+            rs.close();
+            ps.close();
+            return null;
+
         } catch (SQLException e) {
-            System.out.println("Error al buscar gestión por ID: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }
 
     /**
-     * Obtener gestiones por rango de fechas
+     * Obtener gestiones en un rango de fechas
+     *
      * @param fechaInicio Fecha de inicio del rango
-     * @param fechaFin Fecha de fin del rango
+     * @param fechaFin    Fecha de fin del rango
      * @return Lista de gestiones en el rango
      */
-    public List<String[]> obtenerGestionesPorFecha(Date fechaInicio, Date fechaFin) {
-        String query = "SELECT id, descripcion, estado, fecha_inicio, fecha_fin, nombre FROM gestion " +
-                "WHERE estado = true AND fecha_inicio >= ? AND fecha_fin <= ? ORDER BY fecha_inicio";
+    public List<String[]> findByDateRange(Date fechaInicio, Date fechaFin) {
+        String query = "SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, activo FROM GESTION " +
+                "WHERE activo = true AND fecha_inicio >= ? AND fecha_fin <= ? ORDER BY fecha_inicio";
         List<String[]> gestiones = new ArrayList<>();
 
         try {
@@ -233,21 +240,56 @@ public class DGestion {
             while (rs.next()) {
                 String[] gestion = new String[6];
                 gestion[0] = String.valueOf(rs.getInt("id"));
-                gestion[1] = rs.getString("descripcion");
-                gestion[2] = String.valueOf(rs.getBoolean("estado"));
+                gestion[1] = rs.getString("nombre");
+                gestion[2] = rs.getString("descripcion");
                 gestion[3] = rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toString() : "";
                 gestion[4] = rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toString() : "";
-                gestion[5] = rs.getString("nombre");
+                gestion[5] = String.valueOf(rs.getBoolean("activo"));
                 gestiones.add(gestion);
             }
 
             rs.close();
             ps.close();
-
-            System.out.println("Gestiones encontradas en el rango: " + gestiones.size());
+            System.out.println("Gestiones en rango: " + gestiones.size());
 
         } catch (SQLException e) {
-            System.out.println("Error al buscar gestiones por fecha: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return gestiones;
+    }
+
+    /**
+     * Obtener gestiones activas en las fechas actuales (función findCurrent)
+     *
+     * @return Lista de gestiones vigentes
+     */
+    public List<String[]> findCurrent() {
+        String query = "SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, activo FROM GESTION " +
+                "WHERE activo = true AND CURRENT_DATE BETWEEN fecha_inicio AND fecha_fin ORDER BY fecha_inicio";
+        List<String[]> gestiones = new ArrayList<>();
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String[] gestion = new String[6];
+                gestion[0] = String.valueOf(rs.getInt("id"));
+                gestion[1] = rs.getString("nombre");
+                gestion[2] = rs.getString("descripcion");
+                gestion[3] = rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toString() : "";
+                gestion[4] = rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toString() : "";
+                gestion[5] = String.valueOf(rs.getBoolean("activo"));
+                gestiones.add(gestion);
+            }
+
+            rs.close();
+            ps.close();
+            System.out.println("Gestiones actuales vigentes: " + gestiones.size());
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
         }
 
         return gestiones;
@@ -255,12 +297,13 @@ public class DGestion {
 
     /**
      * Buscar gestiones por nombre (búsqueda parcial)
-     * @param nombre Nombre a buscar
+     *
+     * @param nombre Nombre o parte del nombre a buscar
      * @return Lista de gestiones que coinciden
      */
-    public List<String[]> buscarGestionesPorNombre(String nombre) {
-        String query = "SELECT id, descripcion, estado, fecha_inicio, fecha_fin, nombre FROM gestion " +
-                "WHERE estado = true AND nombre LIKE ? ORDER BY nombre";
+    public List<String[]> findByName(String nombre) {
+        String query = "SELECT id, nombre, descripcion, fecha_inicio, fecha_fin, activo FROM GESTION " +
+                "WHERE activo = true AND LOWER(nombre) LIKE LOWER(?) ORDER BY nombre";
         List<String[]> gestiones = new ArrayList<>();
 
         try {
@@ -271,50 +314,22 @@ public class DGestion {
             while (rs.next()) {
                 String[] gestion = new String[6];
                 gestion[0] = String.valueOf(rs.getInt("id"));
-                gestion[1] = rs.getString("descripcion");
-                gestion[2] = String.valueOf(rs.getBoolean("estado"));
+                gestion[1] = rs.getString("nombre");
+                gestion[2] = rs.getString("descripcion");
                 gestion[3] = rs.getDate("fecha_inicio") != null ? rs.getDate("fecha_inicio").toString() : "";
                 gestion[4] = rs.getDate("fecha_fin") != null ? rs.getDate("fecha_fin").toString() : "";
-                gestion[5] = rs.getString("nombre");
+                gestion[5] = String.valueOf(rs.getBoolean("activo"));
                 gestiones.add(gestion);
             }
 
             rs.close();
             ps.close();
-
             System.out.println("Gestiones encontradas con nombre '" + nombre + "': " + gestiones.size());
 
         } catch (SQLException e) {
-            System.out.println("Error al buscar gestiones por nombre: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
 
         return gestiones;
     }
-
-    /**
-     * Reactivar una gestión desactivada
-     * @param id ID de la gestión
-     * @return Mensaje de resultado
-     */
-    public String reactivarGestion(int id) {
-        String query = "UPDATE gestion SET estado = true WHERE id = ?";
-
-        try {
-            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setInt(1, id);
-
-            int result = ps.executeUpdate();
-            ps.close();
-
-            if (result > 0) {
-                return "Gestión reactivada exitosamente";
-            } else {
-                return "Error: No se pudo reactivar la gestión";
-            }
-
-        } catch (SQLException e) {
-            return "Error: " + e.getMessage();
-        }
-    }
 }
-
