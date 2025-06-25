@@ -8,14 +8,17 @@ public class CommandInterpreter {
     private static final Map<String, String[]> COMMANDS = new HashMap<>();
 
     static {
-        // ⭐ ACTUALIZADO: Añadidos comandos findAllResponsables, findAllAdministrativos, findAllTutores
-        COMMANDS.put("usuario", new String[]{"save", "update", "delete", "findAll", "findById", "findByRegister", "findAllResponsables", "findAllAdministrativos", "findAllTutores"});
-        COMMANDS.put("participante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCarnet", "findByRegistro", "findByTipo"});
-        COMMANDS.put("tipoparticipante", new String[]{"save", "update", "delete", "findAll", "findById", "findByCodigo"});
-        // ⭐ NUEVO: Comandos para gestión
-        COMMANDS.put("gestion", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByDateRange", "findByName"});
-        // ⭐ NUEVO: Comandos para cronograma de curso
-        COMMANDS.put("cronogramacurso", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByCursoGestion", "findByFase", "findByFechaRange"});
+        // CU1 - Gestión de Usuarios y Participantes
+        COMMANDS.put("usuario", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByRole", "findByCarnet", "findByEmail"});
+        COMMANDS.put("participante", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByCarnet", "findByEmail", "findByTipo", "findByRegistro"});
+        COMMANDS.put("tipoparticipante", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByCodigo"});
+
+        // Comandos futuros para otros CU (comentados por ahora)
+        // COMMANDS.put("gestion", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByDateRange", "findCurrent", "findByName"});
+        // COMMANDS.put("curso", new String[]{"save", "update", "delete", "deletePermanent", "reactivate", "findAll", "findById", "findByGestion", "findByTutor", "findWithSpots", "updateCupos"});
+        // COMMANDS.put("precio", new String[]{"save", "update", "delete", "reactivate", "findAll", "findById", "findByCurso", "findByTipo", "findEspecifico", "updatePrecio"});
+        // COMMANDS.put("preinscripcion", new String[]{"save", "approve", "reject", "findAll", "findById", "findByCurso", "findByParticipante"});
+        // COMMANDS.put("inscripcion", new String[]{"findAll", "findById", "findByCurso", "findByParticipante", "updateNota", "withdraw", "getEstadisticas"});
     }
 
     public static String interpret(String subject) {
@@ -56,7 +59,7 @@ public class CommandInterpreter {
             return "Comando '" + command + "' no reconocido para '" + entity + "'. Usa 'help' para ver comandos disponibles.";
         }
 
-        // Ejecutar comandos
+        // Ejecutar comandos según entidad
         switch (entity) {
             case "usuario":
                 return executeUsuarioCommand(command, params);
@@ -64,12 +67,8 @@ public class CommandInterpreter {
                 return executeParticipanteCommand(command, params);
             case "tipoparticipante":
                 return executeTipoParticipanteCommand(command, params);
-            case "gestion":
-                return executeGestionCommand(command, params);
-            case "cronogramacurso":
-                return executeCronogramaCursoCommand(command, params);
             default:
-                return "Entidad no reconocida: " + entity;
+                return "Entidad no implementada aún: " + entity;
         }
     }
 
@@ -81,19 +80,18 @@ public class CommandInterpreter {
                 return HandleUsuario.update(params);
             case "delete":
                 return HandleUsuario.delete(params);
+            case "reactivate":
+                return HandleUsuario.reactivate(params);
             case "findAll":
                 return HandleUsuario.findAll();
             case "findById":
                 return HandleUsuario.findById(params);
-            case "findByRegister":
-                return HandleUsuario.findByRegister(params);
-            // ⭐ NUEVOS: Comandos para buscar usuarios por rol
-            case "findAllResponsables":
-                return HandleUsuario.findAllResponsables();
-            case "findAllAdministrativos":
-                return HandleUsuario.findAllAdministrativos();
-            case "findAllTutores":
-                return HandleUsuario.findAllTutores();
+            case "findByRole":
+                return HandleUsuario.findByRole(params);
+            case "findByCarnet":
+                return HandleUsuario.findByCarnet(params);
+            case "findByEmail":
+                return HandleUsuario.findByEmail(params);
             default:
                 return "Comando no implementado: " + command;
         }
@@ -107,17 +105,20 @@ public class CommandInterpreter {
                 return HandleParticipante.update(params);
             case "delete":
                 return HandleParticipante.delete(params);
+            case "reactivate":
+                return HandleParticipante.reactivate(params);
             case "findAll":
                 return HandleParticipante.findAll();
             case "findById":
                 return HandleParticipante.findById(params);
             case "findByCarnet":
                 return HandleParticipante.findByCarnet(params);
-            // ⭐ NUEVO: Comando findByRegistro para participante
-            case "findByRegistro":
-                return HandleParticipante.findByRegistro(params);
+            case "findByEmail":
+                return HandleParticipante.findByEmail(params);
             case "findByTipo":
                 return HandleParticipante.findByTipo(params);
+            case "findByRegistro":
+                return HandleParticipante.findByRegistro(params);
             default:
                 return "Comando no implementado: " + command;
         }
@@ -131,6 +132,8 @@ public class CommandInterpreter {
                 return HandleTipoParticipante.update(params);
             case "delete":
                 return HandleTipoParticipante.delete(params);
+            case "reactivate":
+                return HandleTipoParticipante.reactivate(params);
             case "findAll":
                 return HandleTipoParticipante.findAll();
             case "findById":
@@ -142,140 +145,85 @@ public class CommandInterpreter {
         }
     }
 
-    // ⭐ NUEVO: Método para ejecutar comandos de gestión
-    private static String executeGestionCommand(String command, String params) {
-        switch (command) {
-            case "save":
-                return HandleGestion.save(params);
-            case "update":
-                return HandleGestion.update(params);
-            case "delete":
-                return HandleGestion.delete(params);
-            case "reactivate":
-                return HandleGestion.reactivate(params);
-            case "findAll":
-                return HandleGestion.findAll();
-            case "findById":
-                return HandleGestion.findById(params);
-            case "findByDateRange":
-                return HandleGestion.findByDateRange(params);
-            case "findByName":
-                return HandleGestion.findByName(params);
-            default:
-                return "Comando no implementado: " + command;
-        }
-    }
-
-    // ⭐ NUEVO: Método para ejecutar comandos de cronograma de curso
-    private static String executeCronogramaCursoCommand(String command, String params) {
-        switch (command) {
-            case "save":
-                return HandleCronograma_Curso.save(params);
-            case "update":
-                return HandleCronograma_Curso.update(params);
-            case "delete":
-                return HandleCronograma_Curso.delete(params);
-            case "reactivate":
-                return HandleCronograma_Curso.reactivate(params);
-            case "findAll":
-                return HandleCronograma_Curso.findAll();
-            case "findById":
-                return HandleCronograma_Curso.findById(params);
-            case "findByCursoGestion":
-                return HandleCronograma_Curso.findByCursoGestion(params);
-            case "findByFase":
-                return HandleCronograma_Curso.findByFase(params);
-            case "findByFechaRange":
-                return HandleCronograma_Curso.findByFechaRange(params);
-            default:
-                return "Comando no implementado: " + command;
-        }
-    }
-
     private static String getHelpMessage() {
-        return "**************** SISTEMA PARA CAPACITACIÓN UNIDAD CICIT ****************\r\n" +
+        return "**************** SISTEMA CICIT - CU1 GESTIÓN DE USUARIOS Y PARTICIPANTES ****************\r\n" +
                 "\r\n" +
                 "Usa 'help' para ver la lista de comandos\r\n" +
                 "\r\n" +
                 "Estructura: {entidad} {comando} (parametros)\r\n" +
                 "\r\n" +
-                "=== USUARIO ===\r\n" +
-                "- save (nombre, apellido, email, registro, telefono, carnet, password, rol)\r\n" +
-                "- update (id, nombre, apellido, email, registro, telefono, carnet, password, rol)\r\n" +
+                "=== CU1 - USUARIOS ===\r\n" +
+                "- save (nombre, apellido, carnet, email, telefono, password, rol, registro)\r\n" +
+                "- update (id, nombre, apellido, carnet, email, telefono, password, rol, registro)\r\n" +
                 "- delete (id)\r\n" +
+                "- reactivate (id)\r\n" +
                 "- findAll ()\r\n" +
                 "- findById (id)\r\n" +
-                "- findByRegister (registro)\r\n" +
-                // ⭐ NUEVOS: Comandos para buscar usuarios por rol
-                "- findAllResponsables ()\r\n" +
-                "- findAllAdministrativos ()\r\n" +
-                "- findAllTutores ()\r\n" +
+                "- findByRole (RESPONSABLE|ADMINISTRATIVO|TUTOR)\r\n" +
+                "- findByCarnet (carnet)\r\n" +
+                "- findByEmail (email)\r\n" +
                 "\r\n" +
-                "=== PARTICIPANTE ===\r\n" +
-                // ⭐ ACTUALIZADO: Nuevo orden de parámetros con campo 'registro'
-                "- save (nombre, apellido, carnet, registro, carrera, email, facultad, telefono, universidad, tipoParticipanteId)\r\n" +
-                "- update (id, nombre, apellido, carnet, registro, carrera, email, facultad, telefono, universidad, tipoParticipanteId)\r\n" +
+                "=== CU1 - PARTICIPANTES ===\r\n" +
+                "- save (carnet, nombre, apellido, email, telefono, universidad, tipoParticipanteId, registro)\r\n" +
+                "- update (id, carnet, nombre, apellido, email, telefono, universidad, tipoParticipanteId, registro)\r\n" +
                 "- delete (id)\r\n" +
+                "- reactivate (id)\r\n" +
                 "- findAll ()\r\n" +
                 "- findById (id)\r\n" +
                 "- findByCarnet (carnet)\r\n" +
-                // ⭐ NUEVO: Comando findByRegistro
-                "- findByRegistro (registro)\r\n" +
+                "- findByEmail (email)\r\n" +
                 "- findByTipo (tipoParticipanteId)\r\n" +
+                "- findByRegistro (registro)\r\n" +
                 "\r\n" +
-                "=== TIPO PARTICIPANTE ===\r\n" +
-                "- save (nombre, codigo, descripcion)\r\n" +
-                "- update (id, nombre, codigo, descripcion)\r\n" +
+                "=== CU1 - TIPOS DE PARTICIPANTE ===\r\n" +
+                "- save (codigo, descripcion)\r\n" +
+                "- update (id, codigo, descripcion)\r\n" +
                 "- delete (id)\r\n" +
+                "- reactivate (id)\r\n" +
                 "- findAll ()\r\n" +
                 "- findById (id)\r\n" +
                 "- findByCodigo (codigo)\r\n" +
                 "\r\n" +
-                "=== GESTION ===\r\n" +
-                "- save (descripcion, fechaInicio, fechaFin, nombre)\r\n" +
-                "- update (id, descripcion, fechaInicio, fechaFin, nombre)\r\n" +
-                "- delete (id)\r\n" +
-                "- reactivate (id)\r\n" +
-                "- findAll ()\r\n" +
-                "- findById (id)\r\n" +
-                "- findByDateRange (fechaInicio, fechaFin)\r\n" +
-                "- findByName (nombre)\r\n" +
+                "=== EJEMPLOS DE USO CU1 ===\r\n" +
                 "\r\n" +
-                "=== CRONOGRAMA CURSO ===\r\n" +
-                "- save (cursoGestionId, descripcion, fase, fechaInicio, fechaFin)\r\n" +
-                "- update (id, cursoGestionId, descripcion, fase, fechaInicio, fechaFin)\r\n" +
-                "- delete (id)\r\n" +
-                "- reactivate (id)\r\n" +
-                "- findAll ()\r\n" +
-                "- findById (id)\r\n" +
-                "- findByCursoGestion (cursoGestionId)\r\n" +
-                "- findByFase (fase)\r\n" +
-                "- findByFechaRange (fechaInicio, fechaFin)\r\n" +
+                "Setup inicial:\r\n" +
+                "tipoparticipante save (EST_FICCT, Estudiante FICCT)\r\n" +
+                "tipoparticipante save (EST_OTRA, Estudiante otra facultad)\r\n" +
+                "tipoparticipante save (PARTICULAR, Particular)\r\n" +
                 "\r\n" +
-                "Ejemplos:\r\n" +
-                "usuario save (Juan, Perez, juan@email.com, REG001, 70123456, 12345678, password123, RESPONSABLE)\r\n" +
-                "usuario findAllResponsables ()\r\n" +
-                "usuario findAllTutores ()\r\n" +
-                "participante save (Juan, Perez, CI12345, REG001, Sistemas, juan@email.com, FICCT, 70123456, UAGRM, 1)\r\n" +
+                "Crear usuarios:\r\n" +
+                "usuario save (Maria, Gonzalez, ADM001, maria@uagrm.edu.bo, 70123456, pass123, RESPONSABLE, 201845123)\r\n" +
+                "usuario save (Carlos, Rodriguez, TUT001, carlos@uagrm.edu.bo, 70234567, pass456, TUTOR, 200967890)\r\n" +
+                "usuario save (Ana, Lopez, ADM002, ana@uagrm.edu.bo, 70345678, pass789, ADMINISTRATIVO, 201756789)\r\n" +
+                "\r\n" +
+                "Consultar usuarios:\r\n" +
+                "usuario findAll ()\r\n" +
+                "usuario findByRole (TUTOR)\r\n" +
+                "usuario findByCarnet (ADM001)\r\n" +
+                "usuario findByEmail (maria@uagrm.edu.bo)\r\n" +
+                "\r\n" +
+                "Crear participantes:\r\n" +
+                "participante save (CI12345, Juan, Perez, juan@uagrm.edu.bo, 70987654, UAGRM, 1, 201967890)\r\n" +
+                "participante save (CI67890, Maria, Silva, maria@gmail.com, null, null, 3, null)\r\n" +
+                "participante save (CI11111, Pedro, Mamani, pedro@uagrm.edu.bo, 70111111, UAGRM, 2, 202012345)\r\n" +
+                "\r\n" +
+                "Consultar participantes:\r\n" +
+                "participante findAll ()\r\n" +
                 "participante findByCarnet (CI12345)\r\n" +
-                "participante findByRegistro (REG001)\r\n" +
-                "tipoparticipante save (Estudiante, EST, Estudiante universitario)\r\n" +
-                "gestion save (Cursos Verano, 2024-03-01, 2024-07-15, Semestre I-2024)\r\n" +
-                "gestion update (1, Semestre actualizado, 2024-03-01, 2024-07-20, Semestre I-2024)\r\n" +
-                "gestion delete (1)\r\n" +
-                "gestion reactivate (1)\r\n" +
-                "gestion findAll ()\r\n" +
-                "gestion findById (1)\r\n" +
-                "gestion findByDateRange (2024-01-01, 2024-12-31)\r\n" +
-                "gestion findByName (Semestre)\r\n" +
-                "cronogramacurso save (1, Desarrollo de aplicaciones web, planificacion, 2024-03-01, 2024-03-15)\r\n" +
-                "cronogramacurso update (1, 1, Desarrollo de aplicaciones web actualizado, desarrollo, 2024-03-01, 2024-03-20)\r\n" +
-                "cronogramacurso delete (1)\r\n" +
-                "cronogramacurso reactivate (1)\r\n" +
-                "cronogramacurso findAll ()\r\n" +
-                "cronogramacurso findById (1)\r\n" +
-                "cronogramacurso findByCursoGestion (1)\r\n" +
-                "cronogramacurso findByFase (planificacion)\r\n" +
-                "cronogramacurso findByFechaRange (2024-03-01, 2024-03-31)\r\n";
+                "participante findByTipo (1)\r\n" +
+                "participante findByRegistro (201967890)\r\n" +
+                "participante findByEmail (juan@uagrm.edu.bo)\r\n" +
+                "\r\n" +
+                "Consultar tipos:\r\n" +
+                "tipoparticipante findAll ()\r\n" +
+                "tipoparticipante findByCodigo (EST_FICCT)\r\n" +
+                "\r\n" +
+                "Actualizar y gestionar:\r\n" +
+                "usuario update (1, Maria, Gonzalez, ADM001, maria.gonzalez@uagrm.edu.bo, 70123456, newpass, RESPONSABLE, 201845123)\r\n" +
+                "participante update (1, CI12345, Juan Carlos, Perez, juan.perez@uagrm.edu.bo, 70987654, UAGRM, 1, 201967890)\r\n" +
+                "usuario delete (2)\r\n" +
+                "usuario reactivate (2)\r\n" +
+                "\r\n" +
+                "Nota: Use 'null' para campos opcionales vacíos en participantes (telefono, universidad, registro)\r\n";
     }
 }
