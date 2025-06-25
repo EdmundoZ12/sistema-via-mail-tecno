@@ -15,7 +15,8 @@ public class DTipoParticipante {
     ConfigDB configDB = new ConfigDB();
 
     public DTipoParticipante() {
-        this.databaseConection = new DatabaseConection(configDB.getUser(), configDB.getPassword(), configDB.getHost(), configDB.getPort(), configDB.getDbName());
+        this.databaseConection = new DatabaseConection(configDB.getUser(), configDB.getPassword(),
+                configDB.getHost(), configDB.getPort(), configDB.getDbName());
     }
 
     public void disconnect() {
@@ -24,56 +25,57 @@ public class DTipoParticipante {
         }
     }
 
-    public String save(String nombre, String codigo, String descripcion) {
-        String query = "INSERT INTO tipo_participante (nombre, codigo, descripcion, activo) VALUES (?, ?, ?, ?)";
+    // CU1 - MÉTODOS PARA GESTIÓN DE TIPOS DE PARTICIPANTE
+
+    /**
+     * Crear nuevo tipo de participante
+     */
+    public String save(String codigo, String descripcion) {
+        String query = "INSERT INTO TIPO_PARTICIPANTE (codigo, descripcion, activo) VALUES (?, ?, ?)";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, nombre);
-            ps.setString(2, codigo);
-            ps.setString(3, descripcion);
-            ps.setBoolean(4, true);
+            ps.setString(1, codigo);
+            ps.setString(2, descripcion);
+            ps.setBoolean(3, true);
 
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Tipo de participante creado exitosamente";
-            } else {
-                return "Error: No se pudo crear el tipo de participante";
-            }
+            return result > 0 ? "Tipo de participante creado exitosamente" : "Error: No se pudo crear el tipo de participante";
 
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
         }
     }
 
-    public String update(int id, String nombre, String codigo, String descripcion) {
-        String query = "UPDATE tipo_participante SET nombre = ?, codigo = ?, descripcion = ? WHERE id = ?";
+    /**
+     * Actualizar tipo de participante existente
+     */
+    public String update(int id, String codigo, String descripcion) {
+        String query = "UPDATE TIPO_PARTICIPANTE SET codigo = ?, descripcion = ? WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, nombre);
-            ps.setString(2, codigo);
-            ps.setString(3, descripcion);
-            ps.setInt(4, id);
+            ps.setString(1, codigo);
+            ps.setString(2, descripcion);
+            ps.setInt(3, id);
 
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Tipo de participante actualizado exitosamente";
-            } else {
-                return "Error: No se pudo actualizar el tipo de participante";
-            }
+            return result > 0 ? "Tipo de participante actualizado exitosamente" : "Error: No se pudo actualizar el tipo de participante";
 
         } catch (SQLException e) {
-            return "Error: en el Sistema " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
 
+    /**
+     * Desactivar tipo de participante (soft delete)
+     */
     public String delete(int id) {
-        String query = "UPDATE tipo_participante SET activo = false WHERE id = ?";
+        String query = "UPDATE TIPO_PARTICIPANTE SET activo = false WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -82,19 +84,38 @@ public class DTipoParticipante {
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Tipo de participante eliminado exitosamente";
-            } else {
-                return "Error: No se pudo eliminar el tipo de participante";
-            }
+            return result > 0 ? "Tipo de participante desactivado exitosamente" : "Error: No se pudo desactivar el tipo de participante";
 
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
         }
     }
 
+    /**
+     * Reactivar tipo de participante
+     */
+    public String reactivate(int id) {
+        String query = "UPDATE TIPO_PARTICIPANTE SET activo = true WHERE id = ?";
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ps.setInt(1, id);
+
+            int result = ps.executeUpdate();
+            ps.close();
+
+            return result > 0 ? "Tipo de participante reactivado exitosamente" : "Error: No se pudo reactivar el tipo de participante";
+
+        } catch (SQLException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Listar todos los tipos de participante activos
+     */
     public List<String[]> findAllTipos() {
-        String query = "SELECT id, nombre, codigo, descripcion, activo FROM tipo_participante WHERE activo = true";
+        String query = "SELECT id, codigo, descripcion, activo FROM TIPO_PARTICIPANTE WHERE activo = true ORDER BY codigo";
         List<String[]> tipos = new ArrayList<>();
 
         try {
@@ -102,30 +123,19 @@ public class DTipoParticipante {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String[] tipo = new String[5];
+                String[] tipo = new String[4];
                 tipo[0] = String.valueOf(rs.getInt("id"));
-                tipo[1] = rs.getString("nombre");
-                tipo[2] = rs.getString("codigo");
-                tipo[3] = rs.getString("descripcion");
-                tipo[4] = String.valueOf(rs.getBoolean("activo"));
+                tipo[1] = rs.getString("codigo");
+                tipo[2] = rs.getString("descripcion");
+                tipo[3] = String.valueOf(rs.getBoolean("activo"));
                 tipos.add(tipo);
 
-                // Mostrar cada tipo en consola
-                System.out.println("Tipo: ID=" + tipo[0] +
-                        ", Nombre=" + tipo[1] +
-                        ", Codigo=" + tipo[2] +
-                        ", Descripcion=" + tipo[3] +
-                        ", Activo=" + tipo[4]);
+                System.out.println("Tipo: " + tipo[1] + " - " + tipo[2]);
             }
 
             rs.close();
             ps.close();
-
-            if (tipos.isEmpty()) {
-                System.out.println("No se encontraron tipos de participante activos en el sistema");
-            } else {
-                System.out.println("Total tipos encontrados: " + tipos.size());
-            }
+            System.out.println("Total tipos activos: " + tipos.size());
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -134,8 +144,11 @@ public class DTipoParticipante {
         return tipos;
     }
 
+    /**
+     * Buscar tipo por ID
+     */
     public String[] findOneById(int id) {
-        String query = "SELECT id, nombre, codigo, descripcion, activo FROM tipo_participante WHERE id = ?";
+        String query = "SELECT id, codigo, descripcion, activo FROM TIPO_PARTICIPANTE WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -143,39 +156,33 @@ public class DTipoParticipante {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String[] tipo = new String[5];
+                String[] tipo = new String[4];
                 tipo[0] = String.valueOf(rs.getInt("id"));
-                tipo[1] = rs.getString("nombre");
-                tipo[2] = rs.getString("codigo");
-                tipo[3] = rs.getString("descripcion");
-                tipo[4] = String.valueOf(rs.getBoolean("activo"));
+                tipo[1] = rs.getString("codigo");
+                tipo[2] = rs.getString("descripcion");
+                tipo[3] = String.valueOf(rs.getBoolean("activo"));
 
-                System.out.println("Tipo encontrado por ID: ID=" + tipo[0] +
-                        ", Nombre=" + tipo[1] +
-                        ", Codigo=" + tipo[2] +
-                        ", Descripcion=" + tipo[3] +
-                        ", Activo=" + tipo[4]);
-
+                System.out.println("Tipo encontrado: " + tipo[1] + " - " + tipo[2]);
                 rs.close();
                 ps.close();
-
                 return tipo;
-            } else {
-                rs.close();
-                ps.close();
-
-                System.out.println("No se encontró el tipo de participante con ID: " + id);
-                return null;
             }
 
+            rs.close();
+            ps.close();
+            return null;
+
         } catch (SQLException e) {
-            System.out.println("Error al buscar tipo por ID: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }
 
-    public String[] findOneByCodigo(String codigo) {
-        String query = "SELECT id, nombre, codigo, descripcion, activo FROM tipo_participante WHERE codigo = ?";
+    /**
+     * Buscar tipo por código
+     */
+    public String[] findByCodigo(String codigo) {
+        String query = "SELECT id, codigo, descripcion, activo FROM TIPO_PARTICIPANTE WHERE codigo = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -183,33 +190,24 @@ public class DTipoParticipante {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String[] tipo = new String[5];
+                String[] tipo = new String[4];
                 tipo[0] = String.valueOf(rs.getInt("id"));
-                tipo[1] = rs.getString("nombre");
-                tipo[2] = rs.getString("codigo");
-                tipo[3] = rs.getString("descripcion");
-                tipo[4] = String.valueOf(rs.getBoolean("activo"));
+                tipo[1] = rs.getString("codigo");
+                tipo[2] = rs.getString("descripcion");
+                tipo[3] = String.valueOf(rs.getBoolean("activo"));
 
-                System.out.println("Tipo encontrado por codigo: ID=" + tipo[0] +
-                        ", Nombre=" + tipo[1] +
-                        ", Codigo=" + tipo[2] +
-                        ", Descripcion=" + tipo[3] +
-                        ", Activo=" + tipo[4]);
-
+                System.out.println("Tipo encontrado por código: " + tipo[1] + " - " + tipo[2]);
                 rs.close();
                 ps.close();
-
                 return tipo;
-            } else {
-                rs.close();
-                ps.close();
-
-                System.out.println("No se encontró el tipo de participante con codigo: " + codigo);
-                return null;
             }
 
+            rs.close();
+            ps.close();
+            return null;
+
         } catch (SQLException e) {
-            System.out.println("Error al buscar tipo por codigo: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }

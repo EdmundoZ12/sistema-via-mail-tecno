@@ -15,7 +15,8 @@ public class DParticipante {
     ConfigDB configDB = new ConfigDB();
 
     public DParticipante() {
-        this.databaseConection = new DatabaseConection(configDB.getUser(), configDB.getPassword(), configDB.getHost(), configDB.getPort(), configDB.getDbName());
+        this.databaseConection = new DatabaseConection(configDB.getUser(), configDB.getPassword(),
+                configDB.getHost(), configDB.getPort(), configDB.getDbName());
     }
 
     public void disconnect() {
@@ -24,71 +25,71 @@ public class DParticipante {
         }
     }
 
-    // ⭐ ACTUALIZADO: Ahora incluye campo 'registro'
-    public String save(String nombre, String apellido, String carnet, String registro, String carrera, String email, String facultad, String telefono, String universidad, int tipoParticipanteId) {
-        String query = "INSERT INTO participante (apellido, carnet, registro, carrera, email, facultad, nombre, telefono, universidad, tipo_participante_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // CU1 - MÉTODOS PARA GESTIÓN DE PARTICIPANTES
+
+    /**
+     * Crear nuevo participante
+     */
+    public String save(String carnet, String nombre, String apellido, String email, String telefono,
+                       String universidad, int tipoParticipanteId, String registro) {
+        String query = "INSERT INTO PARTICIPANTE (carnet, nombre, apellido, email, telefono, universidad, tipo_participante_id, activo, registro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, apellido);
-            ps.setString(2, carnet);
-            ps.setString(3, registro);
-            ps.setString(4, carrera);
-            ps.setString(5, email);
-            ps.setString(6, facultad);
-            ps.setString(7, nombre);
-            ps.setString(8, telefono);
-            ps.setString(9, universidad);
-            ps.setInt(10, tipoParticipanteId);
+            ps.setString(1, carnet);
+            ps.setString(2, nombre);
+            ps.setString(3, apellido);
+            ps.setString(4, email);
+            ps.setString(5, telefono);
+            ps.setString(6, universidad);
+            ps.setInt(7, tipoParticipanteId);
+            ps.setBoolean(8, true);
+            ps.setString(9, registro); // Puede ser NULL para estudiantes de colegio
 
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Participante creado exitosamente";
-            } else {
-                return "Error: No se pudo crear el participante";
-            }
+            return result > 0 ? "Participante creado exitosamente" : "Error: No se pudo crear el participante";
 
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
         }
     }
 
-    // ⭐ ACTUALIZADO: Ahora incluye campo 'registro'
-    public String update(int id, String nombre, String apellido, String carnet, String registro, String carrera, String email, String facultad, String telefono, String universidad, int tipoParticipanteId) {
-        String query = "UPDATE participante SET apellido = ?, carnet = ?, registro = ?, carrera = ?, email = ?, facultad = ?, nombre = ?, telefono = ?, universidad = ?, tipo_participante_id = ? WHERE id = ?";
+    /**
+     * Actualizar participante existente
+     */
+    public String update(int id, String carnet, String nombre, String apellido, String email, String telefono,
+                         String universidad, int tipoParticipanteId, String registro) {
+        String query = "UPDATE PARTICIPANTE SET carnet = ?, nombre = ?, apellido = ?, email = ?, telefono = ?, universidad = ?, tipo_participante_id = ?, registro = ? WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, apellido);
-            ps.setString(2, carnet);
-            ps.setString(3, registro);
-            ps.setString(4, carrera);
-            ps.setString(5, email);
-            ps.setString(6, facultad);
-            ps.setString(7, nombre);
-            ps.setString(8, telefono);
-            ps.setString(9, universidad);
-            ps.setInt(10, tipoParticipanteId);
-            ps.setInt(11, id);
+            ps.setString(1, carnet);
+            ps.setString(2, nombre);
+            ps.setString(3, apellido);
+            ps.setString(4, email);
+            ps.setString(5, telefono);
+            ps.setString(6, universidad);
+            ps.setInt(7, tipoParticipanteId);
+            ps.setString(8, registro);
+            ps.setInt(9, id);
 
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Participante actualizado exitosamente";
-            } else {
-                return "Error: No se pudo actualizar el participante";
-            }
+            return result > 0 ? "Participante actualizado exitosamente" : "Error: No se pudo actualizar el participante";
 
         } catch (SQLException e) {
-            return "Error: en el Sistema " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
 
+    /**
+     * Desactivar participante (soft delete)
+     */
     public String delete(int id) {
-        String query = "DELETE FROM participante WHERE id = ?";
+        String query = "UPDATE PARTICIPANTE SET activo = false WHERE id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -97,20 +98,42 @@ public class DParticipante {
             int result = ps.executeUpdate();
             ps.close();
 
-            if (result > 0) {
-                return "Participante eliminado exitosamente";
-            } else {
-                return "Error: No se pudo eliminar el participante";
-            }
+            return result > 0 ? "Participante desactivado exitosamente" : "Error: No se pudo desactivar el participante";
 
         } catch (SQLException e) {
             return "Error: " + e.getMessage();
         }
     }
 
-    // ⭐ ACTUALIZADO: Ahora incluye campo 'registro' en SELECT
+    /**
+     * Reactivar participante
+     */
+    public String reactivate(int id) {
+        String query = "UPDATE PARTICIPANTE SET activo = true WHERE id = ?";
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ps.setInt(1, id);
+
+            int result = ps.executeUpdate();
+            ps.close();
+
+            return result > 0 ? "Participante reactivado exitosamente" : "Error: No se pudo reactivar el participante";
+
+        } catch (SQLException e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    /**
+     * Listar todos los participantes activos
+     */
     public List<String[]> findAllParticipantes() {
-        String query = "SELECT p.id, p.apellido, p.carnet, p.registro, p.carrera, p.email, p.facultad, p.nombre, p.telefono, p.universidad, p.tipo_participante_id, tp.nombre as tipo_nombre FROM participante p INNER JOIN tipo_participante tp ON p.tipo_participante_id = tp.id";
+        String query = "SELECT p.id, p.carnet, p.nombre, p.apellido, p.email, p.telefono, p.universidad, " +
+                "p.registro, tp.codigo AS tipo_codigo, tp.descripcion AS tipo_descripcion, p.activo " +
+                "FROM PARTICIPANTE p " +
+                "JOIN TIPO_PARTICIPANTE tp ON p.tipo_participante_id = tp.id " +
+                "WHERE p.activo = true ORDER BY p.apellido, p.nombre";
         List<String[]> participantes = new ArrayList<>();
 
         try {
@@ -118,43 +141,27 @@ public class DParticipante {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String[] participante = new String[12]; // ⭐ Ahora son 12 campos
+                String[] participante = new String[11];
                 participante[0] = String.valueOf(rs.getInt("id"));
-                participante[1] = rs.getString("apellido");
-                participante[2] = rs.getString("carnet");
-                participante[3] = rs.getString("registro");
-                participante[4] = rs.getString("carrera");
-                participante[5] = rs.getString("email");
-                participante[6] = rs.getString("facultad");
-                participante[7] = rs.getString("nombre");
-                participante[8] = rs.getString("telefono");
-                participante[9] = rs.getString("universidad");
-                participante[10] = String.valueOf(rs.getInt("tipo_participante_id"));
-                participante[11] = rs.getString("tipo_nombre");
+                participante[1] = rs.getString("carnet");
+                participante[2] = rs.getString("nombre");
+                participante[3] = rs.getString("apellido");
+                participante[4] = rs.getString("email");
+                participante[5] = rs.getString("telefono");
+                participante[6] = rs.getString("universidad");
+                participante[7] = rs.getString("registro");
+                participante[8] = rs.getString("tipo_codigo");
+                participante[9] = rs.getString("tipo_descripcion");
+                participante[10] = String.valueOf(rs.getBoolean("activo"));
                 participantes.add(participante);
 
-                // Mostrar cada participante en consola
-                System.out.println("Participante: ID=" + participante[0] +
-                        ", Nombre=" + participante[7] +
-                        ", Apellido=" + participante[1] +
-                        ", Carnet=" + participante[2] +
-                        ", Registro=" + participante[3] +
-                        ", Email=" + participante[5] +
-                        ", Telefono=" + participante[8] +
-                        ", Carrera=" + participante[4] +
-                        ", Facultad=" + participante[6] +
-                        ", Universidad=" + participante[9] +
-                        ", Tipo=" + participante[11]);
+                System.out.println("Participante: " + participante[2] + " " + participante[3] +
+                        " - Carnet: " + participante[1] + " - Tipo: " + participante[8]);
             }
 
             rs.close();
             ps.close();
-
-            if (participantes.isEmpty()) {
-                System.out.println("No se encontraron participantes en el sistema");
-            } else {
-                System.out.println("Total participantes encontrados: " + participantes.size());
-            }
+            System.out.println("Total participantes activos: " + participantes.size());
 
         } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
@@ -163,9 +170,15 @@ public class DParticipante {
         return participantes;
     }
 
-    // ⭐ ACTUALIZADO: Ahora incluye campo 'registro'
+    /**
+     * Buscar participante por ID
+     */
     public String[] findOneById(int id) {
-        String query = "SELECT p.id, p.apellido, p.carnet, p.registro, p.carrera, p.email, p.facultad, p.nombre, p.telefono, p.universidad, p.tipo_participante_id, tp.nombre as tipo_nombre FROM participante p INNER JOIN tipo_participante tp ON p.tipo_participante_id = tp.id WHERE p.id = ?";
+        String query = "SELECT p.id, p.carnet, p.nombre, p.apellido, p.email, p.telefono, p.universidad, " +
+                "p.registro, tp.codigo AS tipo_codigo, tp.descripcion AS tipo_descripcion, p.activo " +
+                "FROM PARTICIPANTE p " +
+                "JOIN TIPO_PARTICIPANTE tp ON p.tipo_participante_id = tp.id " +
+                "WHERE p.id = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -173,53 +186,44 @@ public class DParticipante {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String[] participante = new String[12]; // ⭐ Ahora son 12 campos
+                String[] participante = new String[11];
                 participante[0] = String.valueOf(rs.getInt("id"));
-                participante[1] = rs.getString("apellido");
-                participante[2] = rs.getString("carnet");
-                participante[3] = rs.getString("registro");
-                participante[4] = rs.getString("carrera");
-                participante[5] = rs.getString("email");
-                participante[6] = rs.getString("facultad");
-                participante[7] = rs.getString("nombre");
-                participante[8] = rs.getString("telefono");
-                participante[9] = rs.getString("universidad");
-                participante[10] = String.valueOf(rs.getInt("tipo_participante_id"));
-                participante[11] = rs.getString("tipo_nombre");
+                participante[1] = rs.getString("carnet");
+                participante[2] = rs.getString("nombre");
+                participante[3] = rs.getString("apellido");
+                participante[4] = rs.getString("email");
+                participante[5] = rs.getString("telefono");
+                participante[6] = rs.getString("universidad");
+                participante[7] = rs.getString("registro");
+                participante[8] = rs.getString("tipo_codigo");
+                participante[9] = rs.getString("tipo_descripcion");
+                participante[10] = String.valueOf(rs.getBoolean("activo"));
 
-                System.out.println("Participante encontrado por ID: ID=" + participante[0] +
-                        ", Nombre=" + participante[7] +
-                        ", Apellido=" + participante[1] +
-                        ", Carnet=" + participante[2] +
-                        ", Registro=" + participante[3] +
-                        ", Email=" + participante[5] +
-                        ", Telefono=" + participante[8] +
-                        ", Carrera=" + participante[4] +
-                        ", Facultad=" + participante[6] +
-                        ", Universidad=" + participante[9] +
-                        ", Tipo=" + participante[11]);
-
+                System.out.println("Participante encontrado: " + participante[2] + " " + participante[3]);
                 rs.close();
                 ps.close();
-
                 return participante;
-            } else {
-                rs.close();
-                ps.close();
-
-                System.out.println("No se encontró el participante con ID: " + id);
-                return null;
             }
 
+            rs.close();
+            ps.close();
+            return null;
+
         } catch (SQLException e) {
-            System.out.println("Error al buscar participante por ID: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }
 
-    // ⭐ ACTUALIZADO: Ahora incluye campo 'registro'
-    public String[] findOneByCarnet(String carnet) {
-        String query = "SELECT p.id, p.apellido, p.carnet, p.registro, p.carrera, p.email, p.facultad, p.nombre, p.telefono, p.universidad, p.tipo_participante_id, tp.nombre as tipo_nombre FROM participante p INNER JOIN tipo_participante tp ON p.tipo_participante_id = tp.id WHERE p.carnet = ?";
+    /**
+     * Buscar participante por carnet
+     */
+    public String[] findByCarnet(String carnet) {
+        String query = "SELECT p.id, p.carnet, p.nombre, p.apellido, p.email, p.telefono, p.universidad, " +
+                "p.registro, tp.codigo AS tipo_codigo, tp.descripcion AS tipo_descripcion, p.activo " +
+                "FROM PARTICIPANTE p " +
+                "JOIN TIPO_PARTICIPANTE tp ON p.tipo_participante_id = tp.id " +
+                "WHERE p.carnet = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
@@ -227,103 +231,87 @@ public class DParticipante {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String[] participante = new String[12]; // ⭐ Ahora son 12 campos
+                String[] participante = new String[11];
                 participante[0] = String.valueOf(rs.getInt("id"));
-                participante[1] = rs.getString("apellido");
-                participante[2] = rs.getString("carnet");
-                participante[3] = rs.getString("registro");
-                participante[4] = rs.getString("carrera");
-                participante[5] = rs.getString("email");
-                participante[6] = rs.getString("facultad");
-                participante[7] = rs.getString("nombre");
-                participante[8] = rs.getString("telefono");
-                participante[9] = rs.getString("universidad");
-                participante[10] = String.valueOf(rs.getInt("tipo_participante_id"));
-                participante[11] = rs.getString("tipo_nombre");
-
-                System.out.println("Participante encontrado por carnet: ID=" + participante[0] +
-                        ", Nombre=" + participante[7] +
-                        ", Apellido=" + participante[1] +
-                        ", Carnet=" + participante[2] +
-                        ", Registro=" + participante[3] +
-                        ", Email=" + participante[5] +
-                        ", Telefono=" + participante[8] +
-                        ", Carrera=" + participante[4] +
-                        ", Facultad=" + participante[6] +
-                        ", Universidad=" + participante[9] +
-                        ", Tipo=" + participante[11]);
+                participante[1] = rs.getString("carnet");
+                participante[2] = rs.getString("nombre");
+                participante[3] = rs.getString("apellido");
+                participante[4] = rs.getString("email");
+                participante[5] = rs.getString("telefono");
+                participante[6] = rs.getString("universidad");
+                participante[7] = rs.getString("registro");
+                participante[8] = rs.getString("tipo_codigo");
+                participante[9] = rs.getString("tipo_descripcion");
+                participante[10] = String.valueOf(rs.getBoolean("activo"));
 
                 rs.close();
                 ps.close();
-
                 return participante;
-            } else {
-                rs.close();
-                ps.close();
-
-                System.out.println("No se encontró el participante con carnet: " + carnet);
-                return null;
             }
 
+            rs.close();
+            ps.close();
+            return null;
+
         } catch (SQLException e) {
-            System.out.println("Error al buscar participante por carnet: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }
 
-    // ⭐ NUEVO: Método para buscar por registro
-    public String[] findOneByRegistro(String registro) {
-        String query = "SELECT p.id, p.apellido, p.carnet, p.registro, p.carrera, p.email, p.facultad, p.nombre, p.telefono, p.universidad, p.tipo_participante_id, tp.nombre as tipo_nombre FROM participante p INNER JOIN tipo_participante tp ON p.tipo_participante_id = tp.id WHERE p.registro = ?";
+    /**
+     * Buscar participante por email
+     */
+    public String[] findByEmail(String email) {
+        String query = "SELECT p.id, p.carnet, p.nombre, p.apellido, p.email, p.telefono, p.universidad, " +
+                "p.registro, tp.codigo AS tipo_codigo, tp.descripcion AS tipo_descripcion, p.activo " +
+                "FROM PARTICIPANTE p " +
+                "JOIN TIPO_PARTICIPANTE tp ON p.tipo_participante_id = tp.id " +
+                "WHERE p.email = ?";
 
         try {
             PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
-            ps.setString(1, registro);
+            ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                String[] participante = new String[12];
+                String[] participante = new String[11];
                 participante[0] = String.valueOf(rs.getInt("id"));
-                participante[1] = rs.getString("apellido");
-                participante[2] = rs.getString("carnet");
-                participante[3] = rs.getString("registro");
-                participante[4] = rs.getString("carrera");
-                participante[5] = rs.getString("email");
-                participante[6] = rs.getString("facultad");
-                participante[7] = rs.getString("nombre");
-                participante[8] = rs.getString("telefono");
-                participante[9] = rs.getString("universidad");
-                participante[10] = String.valueOf(rs.getInt("tipo_participante_id"));
-                participante[11] = rs.getString("tipo_nombre");
-
-                System.out.println("Participante encontrado por registro: ID=" + participante[0] +
-                        ", Nombre=" + participante[7] +
-                        ", Apellido=" + participante[1] +
-                        ", Registro=" + participante[3] +
-                        ", Carnet=" + participante[2] +
-                        ", Email=" + participante[5] +
-                        ", Tipo=" + participante[11]);
+                participante[1] = rs.getString("carnet");
+                participante[2] = rs.getString("nombre");
+                participante[3] = rs.getString("apellido");
+                participante[4] = rs.getString("email");
+                participante[5] = rs.getString("telefono");
+                participante[6] = rs.getString("universidad");
+                participante[7] = rs.getString("registro");
+                participante[8] = rs.getString("tipo_codigo");
+                participante[9] = rs.getString("tipo_descripcion");
+                participante[10] = String.valueOf(rs.getBoolean("activo"));
 
                 rs.close();
                 ps.close();
-
                 return participante;
-            } else {
-                rs.close();
-                ps.close();
-
-                System.out.println("No se encontró el participante con registro: " + registro);
-                return null;
             }
 
+            rs.close();
+            ps.close();
+            return null;
+
         } catch (SQLException e) {
-            System.out.println("Error al buscar participante por registro: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
             return null;
         }
     }
 
-    // ⭐ ACTUALIZADO: Ahora incluye campo 'registro'
-    public List<String[]> findByTipoParticipante(int tipoParticipanteId) {
-        String query = "SELECT p.id, p.apellido, p.carnet, p.registro, p.carrera, p.email, p.facultad, p.nombre, p.telefono, p.universidad, p.tipo_participante_id, tp.nombre as tipo_nombre FROM participante p INNER JOIN tipo_participante tp ON p.tipo_participante_id = tp.id WHERE p.tipo_participante_id = ?";
+    /**
+     * Buscar participantes por tipo
+     */
+    public List<String[]> findByTipo(int tipoParticipanteId) {
+        String query = "SELECT p.id, p.carnet, p.nombre, p.apellido, p.email, p.telefono, p.universidad, " +
+                "p.registro, tp.codigo AS tipo_codigo, tp.descripcion AS tipo_descripcion, p.activo " +
+                "FROM PARTICIPANTE p " +
+                "JOIN TIPO_PARTICIPANTE tp ON p.tipo_participante_id = tp.id " +
+                "WHERE p.tipo_participante_id = ? AND p.activo = true ORDER BY p.apellido, p.nombre";
         List<String[]> participantes = new ArrayList<>();
 
         try {
@@ -332,43 +320,73 @@ public class DParticipante {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                String[] participante = new String[12]; // ⭐ Ahora son 12 campos
+                String[] participante = new String[11];
                 participante[0] = String.valueOf(rs.getInt("id"));
-                participante[1] = rs.getString("apellido");
-                participante[2] = rs.getString("carnet");
-                participante[3] = rs.getString("registro");
-                participante[4] = rs.getString("carrera");
-                participante[5] = rs.getString("email");
-                participante[6] = rs.getString("facultad");
-                participante[7] = rs.getString("nombre");
-                participante[8] = rs.getString("telefono");
-                participante[9] = rs.getString("universidad");
-                participante[10] = String.valueOf(rs.getInt("tipo_participante_id"));
-                participante[11] = rs.getString("tipo_nombre");
+                participante[1] = rs.getString("carnet");
+                participante[2] = rs.getString("nombre");
+                participante[3] = rs.getString("apellido");
+                participante[4] = rs.getString("email");
+                participante[5] = rs.getString("telefono");
+                participante[6] = rs.getString("universidad");
+                participante[7] = rs.getString("registro");
+                participante[8] = rs.getString("tipo_codigo");
+                participante[9] = rs.getString("tipo_descripcion");
+                participante[10] = String.valueOf(rs.getBoolean("activo"));
                 participantes.add(participante);
-
-                System.out.println("Participante por tipo: ID=" + participante[0] +
-                        ", Nombre=" + participante[7] +
-                        ", Apellido=" + participante[1] +
-                        ", Carnet=" + participante[2] +
-                        ", Registro=" + participante[3] +
-                        ", Email=" + participante[5] +
-                        ", Tipo=" + participante[11]);
             }
 
             rs.close();
             ps.close();
-
-            if (participantes.isEmpty()) {
-                System.out.println("No se encontraron participantes del tipo especificado");
-            } else {
-                System.out.println("Total participantes del tipo encontrados: " + participantes.size());
-            }
+            System.out.println("Participantes del tipo: " + participantes.size());
 
         } catch (SQLException e) {
-            System.out.println("Error al buscar participantes por tipo: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
 
         return participantes;
+    }
+
+    /**
+     * Buscar participante por registro (para estudiantes universitarios)
+     */
+    public String[] findByRegistro(String registro) {
+        String query = "SELECT p.id, p.carnet, p.nombre, p.apellido, p.email, p.telefono, p.universidad, " +
+                "p.registro, tp.codigo AS tipo_codigo, tp.descripcion AS tipo_descripcion, p.activo " +
+                "FROM PARTICIPANTE p " +
+                "JOIN TIPO_PARTICIPANTE tp ON p.tipo_participante_id = tp.id " +
+                "WHERE p.registro = ?";
+
+        try {
+            PreparedStatement ps = databaseConection.openConnection().prepareStatement(query);
+            ps.setString(1, registro);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String[] participante = new String[11];
+                participante[0] = String.valueOf(rs.getInt("id"));
+                participante[1] = rs.getString("carnet");
+                participante[2] = rs.getString("nombre");
+                participante[3] = rs.getString("apellido");
+                participante[4] = rs.getString("email");
+                participante[5] = rs.getString("telefono");
+                participante[6] = rs.getString("universidad");
+                participante[7] = rs.getString("registro");
+                participante[8] = rs.getString("tipo_codigo");
+                participante[9] = rs.getString("tipo_descripcion");
+                participante[10] = String.valueOf(rs.getBoolean("activo"));
+
+                rs.close();
+                ps.close();
+                return participante;
+            }
+
+            rs.close();
+            ps.close();
+            return null;
+
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+            return null;
+        }
     }
 }

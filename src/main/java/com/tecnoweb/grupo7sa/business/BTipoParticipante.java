@@ -12,28 +12,37 @@ public class BTipoParticipante {
         this.dTipoParticipante = new DTipoParticipante();
     }
 
-    public String save(String nombre, String codigo, String descripcion) {
+    // CU1 - LÓGICA DE NEGOCIO PARA TIPOS DE PARTICIPANTE
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            return "Error: El nombre es obligatorio";
-        }
+    /**
+     * Crear nuevo tipo de participante con validaciones de negocio
+     */
+    public String save(String codigo, String descripcion) {
 
+        // Validaciones básicas
         if (codigo == null || codigo.trim().isEmpty()) {
             return "Error: El código es obligatorio";
         }
 
-        if (codigo.length() > 10) {
-            return "Error: El código no puede tener más de 10 caracteres";
+        if (descripcion == null || descripcion.trim().isEmpty()) {
+            return "Error: La descripción es obligatoria";
+        }
+
+        if (codigo.length() > 20) {
+            return "Error: El código no puede tener más de 20 caracteres";
         }
 
         if (!isValidCodigo(codigo)) {
             return "Error: El código solo puede contener letras, números y guiones bajos";
         }
 
+        // Verificar unicidad del código
+        if (dTipoParticipante.findByCodigo(codigo.trim().toUpperCase()) != null) {
+            return "Error: Ya existe un tipo de participante con ese código";
+        }
 
         try {
-            String result = dTipoParticipante.save(nombre.trim(), codigo.trim().toUpperCase(),
-                    descripcion != null ? descripcion.trim() : null);
+            String result = dTipoParticipante.save(codigo.trim().toUpperCase(), descripcion.trim());
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
@@ -42,31 +51,45 @@ public class BTipoParticipante {
         }
     }
 
-    public String update(int id, String nombre, String codigo, String descripcion) {
+    /**
+     * Actualizar tipo de participante existente con validaciones
+     */
+    public String update(int id, String codigo, String descripcion) {
 
         if (id <= 0) {
             return "Error: El ID debe ser mayor a 0";
         }
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            return "Error: El nombre es obligatorio";
-        }
-
+        // Validaciones básicas
         if (codigo == null || codigo.trim().isEmpty()) {
             return "Error: El código es obligatorio";
         }
 
-        if (codigo.length() > 10) {
-            return "Error: El código no puede tener más de 10 caracteres";
+        if (descripcion == null || descripcion.trim().isEmpty()) {
+            return "Error: La descripción es obligatoria";
+        }
+
+        if (codigo.length() > 20) {
+            return "Error: El código no puede tener más de 20 caracteres";
         }
 
         if (!isValidCodigo(codigo)) {
             return "Error: El código solo puede contener letras, números y guiones bajos";
         }
 
+        // Verificar que el tipo existe
+        if (dTipoParticipante.findOneById(id) == null) {
+            return "Error: No se encontró el tipo de participante con ID: " + id;
+        }
+
+        // Verificar unicidad del código (excluyendo el tipo actual)
+        String[] existingByCodigo = dTipoParticipante.findByCodigo(codigo.trim().toUpperCase());
+        if (existingByCodigo != null && !existingByCodigo[0].equals(String.valueOf(id))) {
+            return "Error: Ya existe otro tipo de participante con ese código";
+        }
+
         try {
-            String result = dTipoParticipante.update(id, nombre.trim(), codigo.trim().toUpperCase(),
-                    descripcion != null ? descripcion.trim() : null);
+            String result = dTipoParticipante.update(id, codigo.trim().toUpperCase(), descripcion.trim());
             return result;
         } catch (Exception e) {
             return "Error en la capa de negocio: " + e.getMessage();
@@ -75,10 +98,17 @@ public class BTipoParticipante {
         }
     }
 
+    /**
+     * Desactivar tipo de participante
+     */
     public String delete(int id) {
-
         if (id <= 0) {
             return "Error: El ID debe ser mayor a 0";
+        }
+
+        // Verificar que el tipo existe
+        if (dTipoParticipante.findOneById(id) == null) {
+            return "Error: No se encontró el tipo de participante con ID: " + id;
         }
 
         try {
@@ -91,8 +121,33 @@ public class BTipoParticipante {
         }
     }
 
-    public List<String[]> findAllTipos() {
+    /**
+     * Reactivar tipo de participante
+     */
+    public String reactivate(int id) {
+        if (id <= 0) {
+            return "Error: El ID debe ser mayor a 0";
+        }
 
+        // Verificar que el tipo existe
+        if (dTipoParticipante.findOneById(id) == null) {
+            return "Error: No se encontró el tipo de participante con ID: " + id;
+        }
+
+        try {
+            String result = dTipoParticipante.reactivate(id);
+            return result;
+        } catch (Exception e) {
+            return "Error en la capa de negocio: " + e.getMessage();
+        } finally {
+            dTipoParticipante.disconnect();
+        }
+    }
+
+    /**
+     * Listar todos los tipos de participante activos
+     */
+    public List<String[]> findAllTipos() {
         try {
             List<String[]> result = dTipoParticipante.findAllTipos();
             return result;
@@ -104,8 +159,10 @@ public class BTipoParticipante {
         }
     }
 
+    /**
+     * Buscar tipo por ID
+     */
     public String[] findOneById(int id) {
-
         if (id <= 0) {
             System.out.println("Error: El ID debe ser mayor a 0");
             return null;
@@ -122,15 +179,17 @@ public class BTipoParticipante {
         }
     }
 
-    public String[] findOneByCodigo(String codigo) {
-
+    /**
+     * Buscar tipo por código
+     */
+    public String[] findByCodigo(String codigo) {
         if (codigo == null || codigo.trim().isEmpty()) {
             System.out.println("Error: El código es obligatorio");
             return null;
         }
 
         try {
-            String[] result = dTipoParticipante.findOneByCodigo(codigo.trim().toUpperCase());
+            String[] result = dTipoParticipante.findByCodigo(codigo.trim().toUpperCase());
             return result;
         } catch (Exception e) {
             System.out.println("Error en la capa de negocio: " + e.getMessage());
@@ -140,6 +199,7 @@ public class BTipoParticipante {
         }
     }
 
+    // Métodos auxiliares de validación
     private boolean isValidCodigo(String codigo) {
         if (codigo == null || codigo.trim().isEmpty()) {
             return false;
@@ -150,4 +210,9 @@ public class BTipoParticipante {
         return codigo.matches(codigoRegex);
     }
 
+    public void disconnect() {
+        if (dTipoParticipante != null) {
+            dTipoParticipante.disconnect();
+        }
+    }
 }
