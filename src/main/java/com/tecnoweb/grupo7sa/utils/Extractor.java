@@ -1,6 +1,10 @@
 package com.tecnoweb.grupo7sa.utils;
 
+import javax.mail.internet.MimeUtility;
+import java.io.UnsupportedEncodingException;
+
 public class Extractor {
+
     private static String GMAIL = "d=gmail";
     private static String HOTMAIL = "d=hotmail";
     private static String YAHOO = "d=yahoo";
@@ -44,31 +48,40 @@ public class Extractor {
         if (index_begin == -1) {
             return "No Subject";
         }
+
         index_begin += search.length();
         int index_end = plain_text.indexOf("\n", index_begin);
         if (index_end == -1) {
-            // No newline character found, assume subject goes to the end of the string
-            return plain_text.substring(index_begin).trim();
+            return decodeMime(plain_text.substring(index_begin).trim());
         }
 
-        // Continue reading until the next header line or the end of the string
+        // Construir el subject completo considerando los saltos de línea codificados
         StringBuilder subject = new StringBuilder(plain_text.substring(index_begin, index_end).trim());
         while (true) {
             int next_line_start = index_end + 1;
+            if (next_line_start >= plain_text.length()) break;
+
             int next_line_end = plain_text.indexOf("\n", next_line_start);
-            if (next_line_end == -1 || next_line_start >= plain_text.length()) {
-                break;
-            }
+            if (next_line_end == -1) next_line_end = plain_text.length();
+
             String next_line = plain_text.substring(next_line_start, next_line_end).trim();
             if (next_line.isEmpty() || next_line.matches("^[A-Za-z-]+: .*")) {
-                // Stop if the next line is empty or looks like a new header line
-                break;
+                break; // Nueva cabecera
             }
+
             subject.append(" ").append(next_line);
             index_end = next_line_end;
         }
 
-        return subject.toString().trim();
+        return decodeMime(subject.toString().trim());
+    }
+
+    private static String decodeMime(String encoded) {
+        try {
+            return MimeUtility.decodeText(encoded);
+        } catch (UnsupportedEncodingException e) {
+            return encoded;
+        }
     }
 
     private static String getToFromGmail(String plain_text) {
@@ -82,14 +95,10 @@ public class Extractor {
 
     private static String getToFromYahoo(String plain_text) {
         int index = plain_text.indexOf("To: ");
-        if (index == -1) {
-            return "Unknown";
-        }
+        if (index == -1) return "Unknown";
         int i = plain_text.indexOf("<", index);
         int e = plain_text.indexOf(">", i);
-        if (i == -1 || e == -1) {
-            return "Unknown";
-        }
+        if (i == -1 || e == -1) return "Unknown";
         return plain_text.substring(i + 1, e);
     }
 
@@ -101,14 +110,10 @@ public class Extractor {
     private static String getToCommon(String plain_text) {
         String aux = "To: ";
         int index_begin = plain_text.indexOf(aux);
-        if (index_begin == -1) {
-            return "Unknown";
-        }
+        if (index_begin == -1) return "Unknown";
         index_begin += aux.length();
         int index_end = plain_text.indexOf("\n", index_begin);
-        if (index_end == -1) {
-            return plain_text.substring(index_begin).trim();
-        }
+        if (index_end == -1) return plain_text.substring(index_begin).trim();
         return plain_text.substring(index_begin, index_end).trim();
     }
 }
