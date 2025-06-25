@@ -26,7 +26,7 @@ public class CommandInterpreter {
     }
 
     public static String interpret(String subject) {
-        subject = subject.replaceAll("[^a-zA-Z0-9\\s\\(\\),./@_-]", "");
+        subject = subject.replaceAll("[^\\p{L}\\p{N}\\s\\(\\),./@_-]", "");
         subject = subject.replaceAll("\\s+", " ").trim();
 
         System.out.println("Subject luego de formatear: " + subject);
